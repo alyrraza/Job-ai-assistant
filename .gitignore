@@ -5,7 +5,7 @@ venv/
 __pycache__/
 *.pyc
 *.pyo
-
+node_modules/
 # Data & Models
 data/
 data/vector_db/
