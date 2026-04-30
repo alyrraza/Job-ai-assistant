@@ -100,12 +100,14 @@ export default function ResultsPage() {
     if (!sessionId || isStarting) return;
     setIsStarting(true);
     try {
-      await startInterview(sessionId);
-      router.push(`/interview?session_id=${sessionId}`);
+      const data = await startInterview(sessionId);
+      const token = encodeURIComponent(data.livekit_token ?? "");
+      const url = encodeURIComponent(data.livekit_url ?? "");
+      const room = encodeURIComponent(data.room_name ?? "");
+      router.push(`/interview?session_id=${sessionId}&livekit_token=${token}&livekit_url=${url}&room_name=${room}`);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
       if (msg.includes("409")) {
-        // Interview already started — redirect anyway
         router.push(`/interview?session_id=${sessionId}`);
         return;
       }

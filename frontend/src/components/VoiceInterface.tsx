@@ -1,28 +1,24 @@
 "use client";
 
-// Voice Interview UI — current question dikhao, recording status, per-question score.
-// Agent 3 background mein chal raha hai, frontend WebSocket se live updates leta hai.
-// Final report interview complete hone ke baad yahan show hota hai.
+// Voice Interview UI — LiveKit room se connect hota hai.
+// RoomAudioRenderer TTS audio play karta hai, mic toggle user ka audio publish karta hai.
+// Backend TTS publish karta hai → frontend sunata hai → user bolta hai → backend receive karta hai.
 
 import { useEffect, useState, useRef } from "react";
 import { Mic, MicOff, Loader2, CheckCircle2, XCircle, Award, ArrowRight } from "lucide-react";
+import { LiveKitRoom, RoomAudioRenderer, useLocalParticipant } from "@livekit/components-react";
 import { createWebSocket, getResults } from "@/lib/api";
 import type { Questions, InterviewReport, AnswerEval, WsStateUpdate } from "@/lib/api";
 
 interface VoiceInterfaceProps {
   sessionId: string;
   questions: Questions;
-  livekitToken: string | null;
+  livekitToken: string;
+  livekitUrl: string;
   roomName: string;
 }
 
-type InterviewPhase =
-  | "waiting"
-  | "asking"
-  | "recording"
-  | "evaluating"
-  | "next"
-  | "completed";
+type InterviewPhase = "waiting" | "asking" | "recording" | "evaluating" | "next" | "completed";
 
 interface CurrentQuestion {
   text: string;
@@ -37,33 +33,59 @@ export default function VoiceInterface({
   sessionId,
   questions,
   livekitToken,
+  livekitUrl,
   roomName,
 }: VoiceInterfaceProps) {
+  return (
+    <LiveKitRoom
+      token={livekitToken}
+      serverUrl={livekitUrl}
+      audio={true}
+      video={false}
+      connect={true}
+    >
+      <RoomAudioRenderer />
+      <InterviewRoom
+        sessionId={sessionId}
+        questions={questions}
+        roomName={roomName}
+      />
+    </LiveKitRoom>
+  );
+}
+
+function InterviewRoom({
+  sessionId,
+  questions,
+  roomName,
+}: {
+  sessionId: string;
+  questions: Questions;
+  roomName: string;
+}) {
   const allQuestions = [
     ...questions.behavioral,
     ...questions.technical,
     ...questions.role_specific,
   ];
 
-  const [phase, setPhase] = useState<InterviewPhase>("waiting");
-  const [currentQ, setCurrentQ] = useState<CurrentQuestion | null>(null);
+  const { localParticipant } = useLocalParticipant();
+  const [micEnabled, setMicEnabled] = useState(false);
+  const [phase, setPhase] = useState<InterviewPhase>("asking");
+  const [currentQ, setCurrentQ] = useState<CurrentQuestion | null>({
+    text: allQuestions[0]?.text ?? "",
+    category: allQuestions[0]?.category ?? "",
+    difficulty: allQuestions[0]?.difficulty ?? "medium",
+    skill_tag: allQuestions[0]?.skill_tag ?? "",
+    index: 1,
+    total: allQuestions.length,
+  });
   const [evaluations, setEvaluations] = useState<AnswerEval[]>([]);
   const [report, setReport] = useState<InterviewReport | null>(null);
   const [wsState, setWsState] = useState<string>("connecting");
   const wsRef = useRef<WebSocket | null>(null);
 
   useEffect(() => {
-    // Simulate phase transitions driven by WS pipeline updates
-    setCurrentQ({
-      text: allQuestions[0]?.text ?? "",
-      category: allQuestions[0]?.category ?? "",
-      difficulty: allQuestions[0]?.difficulty ?? "medium",
-      skill_tag: allQuestions[0]?.skill_tag ?? "",
-      index: 1,
-      total: allQuestions.length,
-    });
-    setPhase("asking");
-
     wsRef.current = createWebSocket(
       sessionId,
       (update: WsStateUpdate) => {
@@ -79,6 +101,18 @@ export default function VoiceInterface({
       wsRef.current?.close();
     };
   }, [sessionId]);
+
+  const toggleMic = async () => {
+    if (!localParticipant) return;
+    const next = !micEnabled;
+    try {
+      await localParticipant.setMicrophoneEnabled(next);
+      setMicEnabled(next);
+      setPhase(next ? "recording" : "asking");
+    } catch (err) {
+      console.error("[VoiceInterface] Mic toggle failed:", err);
+    }
+  };
 
   const fetchFinalReport = async () => {
     try {
@@ -149,30 +183,47 @@ export default function VoiceInterface({
         </div>
       )}
 
-      {/* Recording / Status indicator */}
-      <div className="card flex items-center justify-center py-10">
-        <div className="flex flex-col items-center gap-4">
-          <PhaseIndicator phase={phase} />
-          <p className="text-slate-400 text-sm">{PHASE_LABELS[phase]}</p>
-          {livekitToken && (
-            <p className="text-slate-600 text-xs font-mono">
-              LiveKit connected • {roomName}
-            </p>
+      {/* Mic button + status */}
+      <div className="card flex flex-col items-center gap-5 py-8">
+        <button
+          onClick={toggleMic}
+          className={`w-20 h-20 rounded-full border-2 flex items-center justify-center transition-all duration-200 focus:outline-none ${
+            micEnabled
+              ? "bg-red-900/60 border-red-400 animate-pulse hover:bg-red-800/60"
+              : "bg-indigo-900/60 border-indigo-500 hover:bg-indigo-800/60"
+          }`}
+          title={micEnabled ? "Mic band karo" : "Mic shuru karo — jawab do"}
+        >
+          {micEnabled ? (
+            <Mic size={32} className="text-red-400" />
+          ) : (
+            <MicOff size={32} className="text-indigo-400" />
           )}
-          {!livekitToken && (
-            <p className="text-amber-500 text-xs">
-              LiveKit nahi mila — local fallback mode (simulated)
-            </p>
-          )}
+        </button>
+
+        <div className="text-center">
+          <p className="text-slate-300 text-sm font-medium">
+            {micEnabled
+              ? "Recording... — jawab dene ke baad mic band karo"
+              : "Mic dabao aur apna jawab bolo"}
+          </p>
+          <p className="text-slate-600 text-xs mt-1 font-mono">
+            LiveKit connected • {roomName}
+          </p>
         </div>
+
+        {wsState === "agent3_running" && (
+          <div className="flex items-center gap-2 text-emerald-400 text-xs">
+            <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+            AI sun raha hai
+          </div>
+        )}
       </div>
 
       {/* Per-question scores so far */}
       {evaluations.length > 0 && (
         <div className="card">
-          <h3 className="text-slate-300 font-medium mb-3 text-sm">
-            Completed Answers
-          </h3>
+          <h3 className="text-slate-300 font-medium mb-3 text-sm">Completed Answers</h3>
           <div className="space-y-2">
             {evaluations.map((ev, i) => (
               <div
@@ -192,56 +243,13 @@ export default function VoiceInterface({
   );
 }
 
-const PHASE_LABELS: Record<InterviewPhase, string> = {
-  waiting: "Interview shuru hone ka intezaar hai...",
-  asking: "AI sawal pooch raha hai (TTS)...",
-  recording: "Aapka jawab record ho raha hai...",
-  evaluating: "AI jawab evaluate kar raha hai...",
-  next: "Agla sawal aa raha hai...",
-  completed: "Interview complete!",
-};
-
-function PhaseIndicator({ phase }: { phase: InterviewPhase }) {
-  if (phase === "asking") {
-    return (
-      <div className="w-16 h-16 bg-indigo-900/60 border-2 border-indigo-500 rounded-full flex items-center justify-center">
-        <Mic size={28} className="text-indigo-400" />
-      </div>
-    );
-  }
-  if (phase === "recording") {
-    return (
-      <div className="w-16 h-16 bg-red-900/60 border-2 border-red-400 rounded-full flex items-center justify-center animate-pulse">
-        <Mic size={28} className="text-red-400" />
-      </div>
-    );
-  }
-  if (phase === "evaluating") {
-    return (
-      <div className="w-16 h-16 bg-amber-900/40 border-2 border-amber-600 rounded-full flex items-center justify-center">
-        <Loader2 size={28} className="text-amber-400 animate-spin" />
-      </div>
-    );
-  }
-  if (phase === "waiting") {
-    return (
-      <div className="w-16 h-16 bg-slate-800 border-2 border-slate-600 rounded-full flex items-center justify-center">
-        <MicOff size={28} className="text-slate-500" />
-      </div>
-    );
-  }
-  return (
-    <div className="w-16 h-16 bg-emerald-900/60 border-2 border-emerald-500 rounded-full flex items-center justify-center">
-      <CheckCircle2 size={28} className="text-emerald-400" />
-    </div>
-  );
-}
-
 function ScorePill({ score }: { score: number }) {
   const color =
-    score >= 7 ? "text-emerald-400 bg-emerald-900/40 border-emerald-700/40"
-    : score >= 5 ? "text-amber-400 bg-amber-900/40 border-amber-700/40"
-    : "text-red-400 bg-red-900/40 border-red-700/40";
+    score >= 7
+      ? "text-emerald-400 bg-emerald-900/40 border-emerald-700/40"
+      : score >= 5
+      ? "text-amber-400 bg-amber-900/40 border-amber-700/40"
+      : "text-red-400 bg-red-900/40 border-red-700/40";
   return (
     <span className={`text-xs font-bold border px-2 py-0.5 rounded-full ${color}`}>
       {score}/10
@@ -268,7 +276,6 @@ function FinalReport({
 
   return (
     <div className="max-w-3xl mx-auto space-y-6">
-      {/* Hero */}
       <div className="card text-center py-10 border border-indigo-700/30">
         <Award size={48} className="mx-auto mb-4 text-indigo-400" />
         <h1 className="text-3xl font-bold text-slate-100 mb-2">Interview Complete!</h1>
@@ -283,21 +290,17 @@ function FinalReport({
             <div className="text-slate-500 text-sm">Questions</div>
           </div>
           <div className="w-px h-12 bg-slate-700" />
-          <div
-            className={`border rounded-xl px-4 py-2 font-bold uppercase text-sm ${recColor}`}
-          >
+          <div className={`border rounded-xl px-4 py-2 font-bold uppercase text-sm ${recColor}`}>
             {report.recommendation}
           </div>
         </div>
       </div>
 
-      {/* Overall feedback */}
       <div className="card">
         <h2 className="font-semibold text-slate-200 mb-3">Overall Feedback</h2>
         <p className="text-slate-300 text-sm leading-relaxed">{report.overall_feedback}</p>
       </div>
 
-      {/* Strong + Weak areas */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="card">
           <h3 className="text-emerald-400 font-semibold mb-3 flex items-center gap-2">
@@ -329,17 +332,14 @@ function FinalReport({
               ))}
             </ul>
           ) : (
-            <p className="text-slate-500 text-sm">Koi major weak area nahi! 🎉</p>
+            <p className="text-slate-500 text-sm">Koi major weak area nahi!</p>
           )}
         </div>
       </div>
 
-      {/* Improvement tips */}
       {report.top_improvement_tips.length > 0 && (
         <div className="card">
-          <h3 className="font-semibold text-slate-200 mb-3">
-            Top Improvement Tips
-          </h3>
+          <h3 className="font-semibold text-slate-200 mb-3">Top Improvement Tips</h3>
           <ol className="space-y-2">
             {report.top_improvement_tips.map((tip, i) => (
               <li key={i} className="flex items-start gap-3 text-sm text-slate-300">
@@ -353,7 +353,6 @@ function FinalReport({
         </div>
       )}
 
-      {/* Per-question breakdown */}
       <div className="card">
         <h3 className="font-semibold text-slate-200 mb-4">Per-Question Scores</h3>
         <div className="space-y-3">
@@ -365,22 +364,18 @@ function FinalReport({
                 </p>
                 <ScorePill score={ans.score} />
               </div>
-              <p className="text-slate-400 text-xs ml-0">{ans.feedback}</p>
+              <p className="text-slate-400 text-xs">{ans.feedback}</p>
             </div>
           ))}
         </div>
       </div>
 
-      {/* CTA */}
       <div className="flex gap-3 justify-center pb-4">
         <a href="/" className="btn-secondary flex items-center gap-2">
           <ArrowRight size={16} />
           New Interview
         </a>
-        <a
-          href={`/results?session_id=${sessionId}`}
-          className="btn-secondary flex items-center gap-2"
-        >
+        <a href={`/results?session_id=${sessionId}`} className="btn-secondary flex items-center gap-2">
           Results Dobara Dekho
         </a>
       </div>

@@ -174,6 +174,9 @@ def _session_ws_payload(session: _PipelineSession) -> dict[str, Any]:
         ),
         "interview_completed": session.state == PipelineState.COMPLETED,
         "error": session.error,
+        "current_q_index": session.current_q_index,
+        "current_q_total": session.current_q_total,
+        "current_q_text": session.current_q_text,
     }
 
 
@@ -364,14 +367,17 @@ async def websocket_endpoint(websocket: WebSocket, session_id: str) -> None:
     """
     await ws_manager.connect(session_id, websocket)
     last_state: str | None = None
+    last_q_index: int = -1
 
     try:
         while True:
             session = _sessions.get(session_id)
             if session:
                 current_state = session.state.value
-                if current_state != last_state:
+                current_q = session.current_q_index
+                if current_state != last_state or current_q != last_q_index:
                     last_state = current_state
+                    last_q_index = current_q
                     await websocket.send_json(_session_ws_payload(session))
 
                 # Stop polling when terminal state reached

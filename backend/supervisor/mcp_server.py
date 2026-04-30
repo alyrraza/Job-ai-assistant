@@ -42,6 +42,11 @@ class _PipelineSession:
         self.escalations: list[dict] = []
         self.error: Optional[str] = None
 
+        # Per-question progress for voice interview
+        self.current_q_index: int = 0
+        self.current_q_total: int = 0
+        self.current_q_text: str = ""
+
         self.created_at = datetime.utcnow()
         self.updated_at = datetime.utcnow()
         self.lock = asyncio.Lock()

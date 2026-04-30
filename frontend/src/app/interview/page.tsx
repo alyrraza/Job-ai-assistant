@@ -7,7 +7,7 @@
 import { useEffect, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Loader2, AlertTriangle, Send, Award } from "lucide-react";
-import { getResults, startInterview } from "@/lib/api";
+import { getResults } from "@/lib/api";
 import type { FullResults, QuestionItem, Questions } from "@/lib/api";
 import VoiceInterface from "@/components/VoiceInterface";
 
@@ -16,10 +16,11 @@ export default function InterviewPage() {
   const router = useRouter();
   const sessionId = searchParams.get("session_id");
 
+  const livekitToken = searchParams.get("livekit_token") ?? "";
+  const livekitUrl = searchParams.get("livekit_url") ?? "";
+  const roomName = searchParams.get("room_name") ?? "";
+
   const [results, setResults] = useState<FullResults | null>(null);
-  const [livekitToken, setLivekitToken] = useState<string>("");
-  const [livekitUrl, setLivekitUrl] = useState<string>("");
-  const [roomName, setRoomName] = useState<string>("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -32,7 +33,6 @@ export default function InterviewPage() {
 
     (async () => {
       try {
-        // Fetch questions
         const data = await getResults(sessionId);
         if (!data.questions) {
           setError("Questions abhi ready nahi. Results page pe wait karo.");
@@ -40,16 +40,6 @@ export default function InterviewPage() {
           return;
         }
         setResults(data);
-
-        // Get LiveKit token — 409 or no LiveKit means simulation mode
-        try {
-          const interviewData = await startInterview(sessionId);
-          setLivekitToken(interviewData.livekit_token ?? "");
-          setLivekitUrl(interviewData.livekit_url ?? "");
-          setRoomName(interviewData.room_name ?? "");
-        } catch {
-          // Interview already started (409) or LiveKit not configured — simulation mode
-        }
       } catch (err) {
         setError(err instanceof Error ? err.message : "Interview load karne mein error");
       } finally {
@@ -104,6 +94,7 @@ export default function InterviewPage() {
         sessionId={sessionId}
         questions={results.questions}
         livekitToken={livekitToken}
+        livekitUrl={livekitUrl}
         roomName={roomName}
       />
     );

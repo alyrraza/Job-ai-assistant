@@ -22,7 +22,7 @@ def _get_model() -> whisper.Whisper:
     """Lazy load — sirf ek baar download hoga, memory mein rehega."""
     global _model
     if _model is None:
-        logger.info("Loading Whisper 'base' model (first-time download may take a minute)...")
+        logger.info("Loading Whisper 'base' model...")
         _model = whisper.load_model("base")
         logger.success("Whisper model loaded.")
     return _model

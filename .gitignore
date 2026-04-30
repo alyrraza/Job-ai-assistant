@@ -47,3 +47,12 @@ docs/
 
 # Example env
 .env.example
+# Next.js build
+frontend/.next/
+
+# Node
+node_modules/
+
+# Python
+venv/
+__pycache__/
