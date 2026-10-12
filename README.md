@@ -414,10 +414,6 @@ SessionReport uses a model_validator for derived fields — avg_score = mean(ans
 
 ---
 
-*Skill notes: `docs/SKILLS_NOTES.md`*
-
----
-
 ## Phase 5 — Backend API + Next.js Frontend (Complete)
 
 ### 1. Backend REST API + WebSocket — `backend/main.py`
