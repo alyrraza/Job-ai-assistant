@@ -56,3 +56,8 @@ node_modules/
 # Python
 venv/
 __pycache__/
+# Local-only files
+CLAUDE.md
+TEST_RESULTS.md
+PROJECT_INTERVIEW_PREP.md
+.claude/

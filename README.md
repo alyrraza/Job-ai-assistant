@@ -1,16 +1,16 @@
 # CV Interview Coach 🎯
 
-> CV + JD daalo → AI score karta hai → gaps batata hai → voice mock interview leta hai
+> Paste your CV + job description → AI scores the match → lists your gaps → runs a voice mock interview
 
 ---
 
-## Kya Hai Yeh? (Roman Urdu)
+## What Is This?
 
-Tum apna CV aur job description paste karte ho. Baaki sab AI karta hai:
-- CV aur JD compare karta hai — match score + skill gaps
-- Us specific role ke liye personalized interview questions generate karta hai  
-- Real-time voice interview leta hai — bilkul real interviewer ki tarah
-- Performance report deta hai — kahan strong ho, kahan improve karo
+You paste your CV and a job description. The AI does the rest:
+- Compares the CV and JD — match score + skill gaps
+- Generates personalized interview questions for that specific role
+- Conducts a real-time voice interview, like a real interviewer
+- Produces a performance report — where you are strong and where to improve
 
 ---
 
@@ -45,7 +45,7 @@ Results Dashboard (Next.js)
 
 ## Self-Healing System
 
-Har agent ke andar automatic error recovery:
+Every agent has built-in automatic error recovery:
 ```
 Output → Validator → Pass ✅ → Done
                   → Fail ❌ → Self-Critique → Retry (max 3) → Escalate
@@ -73,7 +73,7 @@ Output → Validator → Pass ✅ → Done
 ```bash
 # Clone
 git clone https://github.com/alyrraza/Job-ai-assistant.git
-cd ai-job-assistant
+cd Job-ai-assistant
 
 # Python env
 python -m venv venv
@@ -88,13 +88,13 @@ npm install
 
 # Environment
 cp .env.example .env
-# .env mein GROQ_API_KEY daalo
+# Add your GROQ_API_KEY to .env
 
-# Backend run karo
+# Run the backend
 cd ..
 python backend/main.py
 
-# Frontend run karo (naye terminal mein)
+# Run the frontend (in a new terminal)
 cd frontend
 npm run dev
 ```
@@ -103,36 +103,36 @@ npm run dev
 
 ## Screens
 
-| Screen | URL | Kaam |
+| Screen | URL | Purpose |
 |---|---|---|
-| Upload | / | CV + JD upload |
+| Upload | / | Upload CV + JD |
 | Results | /results | Score + gaps + questions |
 | Interview | /interview | Voice mock interview |
 
 ---
 
-## Agents Detail
+## Agents Overview
 
 ### Agent 1 — CV + JD Analyzer
-**Kaam (Roman Urdu):** CV aur JD ko compare karta hai, match score 0-100 deta hai, strengths aur gaps identify karta hai. Yeh baaki dono agents ki foundation hai.
-**Skill:** LangChain + LangGraph + Groq LLM
-**Interview mein bolna:** "Maine LangChain chain banaya jo CV aur JD ko structured JSON mein parse karta hai, phir LLM se semantic comparison karta hai — simple keyword matching nahi, meaning-based analysis hai."
+**What it does:** Compares the CV and JD, gives a 0-100 match score, and identifies strengths and gaps. It is the foundation for the other two agents.
+**Tech:** LangChain + LangGraph + Groq LLM
+**Design notes:** A LangChain chain parses the CV and JD into structured JSON, then the LLM performs a semantic comparison — meaning-based analysis rather than simple keyword matching.
 
 ### Agent 2 — Question Generator
-**Kaam (Roman Urdu):** Agent 1 ke output ke basis pe personalized interview questions banata hai. Gaps pe hard questions, strengths pe medium — bilkul targeted preparation.
-**Skill:** LangChain + RAG (LlamaIndex + ChromaDB)
-**Interview mein bolna:** "RAG use kiya hai taake industry-specific question patterns retrieve kar sakein. ChromaDB mein question templates store hain, LlamaIndex se semantic retrieval hoti hai."
+**What it does:** Builds personalized interview questions from Agent 1's output. Hard questions on gaps, medium on strengths — targeted preparation.
+**Tech:** LangChain + RAG (LlamaIndex + ChromaDB)
+**Design notes:** RAG retrieves industry-specific question patterns. Question templates are stored in ChromaDB and retrieved semantically through LlamaIndex.
 
 ### Agent 3 — Voice Interview Agent
-**Kaam (Roman Urdu):** Real-time voice mein interview leta hai. Tum bolte ho, Whisper sunta hai, AI evaluate karta hai, TTS se feedback deta hai. Bilkul real interviewer jaisa.
-**Skill:** LiveKit + Whisper STT + Coqui TTS + LangGraph
-**Interview mein bolna:** "WebRTC-based real-time voice pipeline banaya hai LiveKit se. Whisper local pe speech-to-text karta hai, LLM response evaluate karta hai, Coqui TTS se audio feedback aata hai — end-to-end latency 1-2 seconds hai."
+**What it does:** Conducts the interview in real-time voice. You speak, Whisper transcribes, the AI evaluates, and TTS delivers feedback — like a real interviewer.
+**Tech:** LiveKit + Whisper STT + Coqui TTS + LangGraph
+**Design notes:** A WebRTC-based real-time voice pipeline built on LiveKit. Whisper runs speech-to-text locally, the LLM evaluates the answer, and Coqui TTS produces audio feedback — end-to-end latency is about 1-2 seconds.
 
 ---
 
 ## MLOps
 
-MLflow se har agent run track hota hai:
+Every agent run is tracked with MLflow:
 - Quality score per run
 - Retry count
 - Latency
@@ -142,7 +142,7 @@ MLflow se har agent run track hota hai:
 
 ## Development Progress
 
-| Phase | Kya | Status |
+| Phase | Scope | Status |
 |---|---|---|
 | Phase 1 | Foundation + Structure | ✅ Done |
 | Phase 2 | CV Analyzer + RAG Pipeline | ✅ Done |
@@ -156,67 +156,67 @@ MLflow se har agent run track hota hai:
 
 ### 1. CV Analyzer Agent (`backend/agents/cv_analyzer/`)
 
-**Kya kaam karta hai (Roman Urdu):**
-CV text aur JD text lo, Groq LLM (Llama 3.1 8B) se teen step mein process karo — pehle CV parse karo, phir JD parse karo, phir dono ka semantic comparison karo. Output ek validated JSON hai jisme match score, strengths, gaps, aur summary hoti hai.
+**What it does:**
+Takes CV text and JD text and processes them with the Groq LLM (Llama 3.1 8B) in three steps — parse the CV, parse the JD, then run a semantic comparison of the two. The output is validated JSON containing the match score, strengths, gaps, and a summary.
 
-**Konsi skill use hui:** LangChain ChatPromptTemplate + ChatGroq + Pydantic v2 validation
+**Tech used:** LangChain ChatPromptTemplate + ChatGroq + Pydantic v2 validation
 
-**Interview mein kaise explain karein:**
-"Maine teen-step LLM pipeline banaya: CV parser → JD parser → comparison engine. Har step ka output JSON schema se validate hota hai Pydantic se. Agar LLM galat format return kare toh self-healing loop automatically retry karta hai with critique injected in the prompt — yeh BaseAgent se inherit hota hai."
+**Design notes:**
+A three-step LLM pipeline: CV parser → JD parser → comparison engine. Each step's output is validated against a JSON schema with Pydantic. If the LLM returns a malformed format, the self-healing loop retries automatically with a critique injected into the prompt — this behavior is inherited from `BaseAgent`.
 
-**Workflow step by step:**
-1. `CVAnalyzerAgent.run({"cv_text": ..., "jd_text": ...})` call hota hai
+**Workflow:**
+1. `CVAnalyzerAgent.run({"cv_text": ..., "jd_text": ...})` is called
 2. `execute()` → `CV_PARSE_PROMPT` → Groq → JSON parse
 3. `execute()` → `JD_PARSE_PROMPT` → Groq → JSON parse
 4. `execute()` → `COMPARISON_PROMPT` → Groq → JSON parse
 5. `validate()` → `CVAnalysisOutput` Pydantic schema check
-6. PASS: `AgentResult` return | FAIL: `self_critique()` → retry (max 3) → escalate
-7. MLflow mein run log hota hai automatically
+6. PASS: return `AgentResult` | FAIL: `self_critique()` → retry (max 3) → escalate
+7. The run is logged to MLflow automatically
 
 ---
 
 ### 2. Pydantic Validator (`backend/agents/cv_analyzer/validator.py`)
 
-**Kya kaam karta hai (Roman Urdu):**
-LLM jo bhi JSON return kare usse is strict schema se check karo. Match score range (0-100), non-empty lists, summary length — sab validate hota hai. Type coercion bhi built-in hai (float score → int, string → list).
+**What it does:**
+Checks whatever JSON the LLM returns against a strict schema. The match score range (0-100), non-empty lists, and summary length are all validated. Type coercion is built in (float score → int, string → list).
 
-**Konsi skill use hui:** Pydantic v2 BaseModel, field_validator, model_validate
+**Tech used:** Pydantic v2 BaseModel, field_validator, model_validate
 
-**Interview mein kaise explain karein:**
-"LLM output unreliable hota hai — kabhi float aata hai int ki jagah, kabhi markdown fences hoti hain. Maine Pydantic v2 validators likhe jo coerce karte hain ye edge cases aur meaningful errors dete hain jo self-critique loop use kar sake."
+**Design notes:**
+LLM output is unreliable — sometimes a float arrives instead of an int, sometimes there are markdown fences. The Pydantic v2 validators coerce these edge cases and raise meaningful errors that the self-critique loop can use.
 
 ---
 
 ### 3. RAG Pipeline — Vector Store (`backend/rag/vector_store.py`)
 
-**Kya kaam karta hai (Roman Urdu):**
-ChromaDB local vector database setup karta hai. Do collections hain: `cv_patterns` (successful CV-JD matches) aur `interview_questions` (past interview questions). Cosine similarity se semantic search hoti hai.
+**What it does:**
+Sets up a local ChromaDB vector database with two collections: `cv_patterns` (successful CV-JD matches) and `interview_questions` (past interview questions). Semantic search uses cosine similarity.
 
-**Konsi skill use hui:** ChromaDB PersistentClient, cosine HNSW index
+**Tech used:** ChromaDB PersistentClient, cosine HNSW index
 
-**Interview mein kaise explain karein:**
-"ChromaDB ko local persistence ke saath set kiya — koi cloud nahi chahiye. Singleton pattern use kiya taake app mein sirf ek DB connection ho. Cosine similarity space choose kiya kyunki text embeddings ke liye magnitude matter nahi karti, sirf direction matter karti hai."
+**Design notes:**
+ChromaDB is configured with local persistence — no cloud needed. A singleton pattern ensures the app has a single DB connection. Cosine similarity was chosen because for text embeddings the direction matters, not the magnitude.
 
 **Workflow:**
-1. App start → `VectorStore.get_instance()` → PersistentClient open karo
-2. `add_cv_pattern(id, text, embedding, metadata)` → collection mein add
-3. `query_cv_patterns(embedding, n=3)` → similar chunks return
+1. App start → `VectorStore.get_instance()` → open PersistentClient
+2. `add_cv_pattern(id, text, embedding, metadata)` → add to the collection
+3. `query_cv_patterns(embedding, n=3)` → return similar chunks
 
 ---
 
 ### 4. RAG Pipeline — Ingestion (`backend/rag/ingestion.py`)
 
-**Kya kaam karta hai (Roman Urdu):**
-PDF ya plain text lo, LlamaIndex se chunks banao (512 tokens, 64 overlap), SentenceTransformer se embed karo, ChromaDB mein save karo. Duplicate detection MD5 hash se hoti hai.
+**What it does:**
+Takes a PDF or plain text, splits it into chunks with LlamaIndex (512 tokens, 64 overlap), embeds them with SentenceTransformer, and saves them to ChromaDB. Duplicates are detected via an MD5 hash.
 
-**Konsi skill use hui:** LlamaIndex SimpleDirectoryReader + SentenceSplitter, SentenceTransformer `all-MiniLM-L6-v2`
+**Tech used:** LlamaIndex SimpleDirectoryReader + SentenceSplitter, SentenceTransformer `all-MiniLM-L6-v2`
 
-**Interview mein kaise explain karein:**
-"Local embedding model use kiya (MiniLM) taake Groq API calls save hoon — embeddings ke liye paid API zaroorat nahi. Chunking strategy: 512 tokens with 64 overlap — yeh context window aur retrieval precision ka balance hai."
+**Design notes:**
+A local embedding model (MiniLM) means no paid API is needed for embeddings. The chunking strategy — 512 tokens with 64 overlap — balances context window size against retrieval precision.
 
 **Workflow:**
 1. `ingest_pdf(path)` → LlamaIndex load → SentenceSplitter → nodes
-2. Har node → `embed_text()` → MiniLM vector
+2. Each node → `embed_text()` → MiniLM vector
 3. `store.add_cv_pattern(id, text, embedding, metadata)`
 4. Duplicate: MD5 hash check → silently skip
 
@@ -224,19 +224,19 @@ PDF ya plain text lo, LlamaIndex se chunks banao (512 tokens, 64 overlap), Sente
 
 ### 5. RAG Pipeline — Retriever (`backend/rag/retriever.py`)
 
-**Kya kaam karta hai (Roman Urdu):**
-Query text do → MiniLM embedding banao → ChromaDB se top-3 similar chunks lo → clean list return karo. Score 0-1 scale pe convert hota hai (ChromaDB cosine distance se). Question Generator agent yeh use karega.
+**What it does:**
+Takes query text, builds a MiniLM embedding, fetches the top-3 similar chunks from ChromaDB, and returns a clean list. Scores are converted to a 0-1 scale (from ChromaDB cosine distance). The Question Generator agent uses this.
 
-**Konsi skill use hui:** ChromaDB query, cosine distance → similarity conversion
+**Tech used:** ChromaDB query, cosine distance → similarity conversion
 
-**Interview mein kaise explain karein:**
-"ChromaDB cosine distance 0-2 scale pe hota hai — maine isse 0-1 similarity mein convert kiya: `1 - (dist/2)`. `min_score` threshold se noisy results filter hote hain. `format_chunks_for_prompt()` helper token budget respect karta hai."
+**Design notes:**
+ChromaDB cosine distance lies on a 0-2 scale, which is converted to a 0-1 similarity with `1 - (dist/2)`. A `min_score` threshold filters out noisy results. The `format_chunks_for_prompt()` helper respects the token budget.
 
 **Workflow:**
-1. `retrieve_similar_cv_patterns(query, n=3)` call
-2. Query embed karo MiniLM se
+1. `retrieve_similar_cv_patterns(query, n=3)` is called
+2. Embed the query with MiniLM
 3. ChromaDB HNSW index search
-4. Distance → similarity convert, sort, return `RetrievedChunk` list
+4. Convert distance → similarity, sort, return a list of `RetrievedChunk`
 
 ---
 
@@ -249,20 +249,20 @@ Query text do → MiniLM embedding banao → ChromaDB se top-3 similar chunks lo
 
 ### 1. Question Generator Agent (`backend/agents/question_generator/`)
 
-**Kya kaam karta hai (Roman Urdu):**
-CV Analyzer ka output lo — gaps, strengths, job title — aur Groq LLM se teen category mein personalized interview questions banao. Gaps pe hard difficulty assign hoti hai, strengths pe medium. RAG se similar question examples context ke liye retrieve hote hain.
+**What it does:**
+Takes the CV Analyzer's output — gaps, strengths, job title — and uses the Groq LLM to create personalized interview questions in three categories. Gaps get hard difficulty, strengths get medium. Similar question examples are retrieved via RAG for context.
 
-**Konsi skill use hui:** LangChain ChatPromptTemplate + ChatGroq + RAG retriever + Pydantic v2 model_validator
+**Tech used:** LangChain ChatPromptTemplate + ChatGroq + RAG retriever + Pydantic v2 model_validator
 
-**Interview mein kaise explain karein:**
-"Agent 2 mein RAG-augmented generation use kiya — pehle ChromaDB se similar interview questions retrieve kiye (semantic search), phir un examples ko LLM prompt mein inject kiya. Difficulty calibration automatic hai: gaps → hard, strengths → medium. Pydantic model_validator se total_count aur difficulty_distribution auto-compute hote hain — LLM pe count karne ka bharosa nahi karte."
+**Design notes:**
+Agent 2 uses RAG-augmented generation — similar interview questions are first retrieved from ChromaDB (semantic search), then injected into the LLM prompt as examples. Difficulty calibration is automatic: gaps → hard, strengths → medium. A Pydantic model_validator auto-computes total_count and difficulty_distribution, so the pipeline never relies on the LLM to count.
 
-**Workflow step by step:**
+**Workflow:**
 1. Input: `CVAnalyzerAgent.data` dict (strengths, gaps, required_skills, _jd_parsed)
 2. RAG: `retrieve_similar_questions(query)` → top-5 examples from ChromaDB
-3. `BEHAVIORAL_PROMPT` → Groq → 3 behavioral questions JSON array
-4. `TECHNICAL_PROMPT` → Groq → 4 technical questions JSON array
-5. `ROLE_SPECIFIC_PROMPT` → Groq → 2 role-specific questions JSON array
+3. `BEHAVIORAL_PROMPT` → Groq → JSON array of 3 behavioral questions
+4. `TECHNICAL_PROMPT` → Groq → JSON array of 4 technical questions
+5. `ROLE_SPECIFIC_PROMPT` → Groq → JSON array of 2 role-specific questions
 6. Merge → `QuestionGeneratorOutput.model_validate()` → auto-compute counts
 7. PASS: return 9 questions | FAIL: self_critique() → retry (max 3)
 
@@ -270,29 +270,29 @@ CV Analyzer ka output lo — gaps, strengths, job title — aur Groq LLM se teen
 
 ### 2. Prompts — Difficulty Calibration (`backend/agents/question_generator/prompts.py`)
 
-**Kya kaam karta hai (Roman Urdu):**
-Teen category ke prompts hain — Behavioral, Technical, Role-Specific. Har prompt mein difficulty rules embed hain: gaps list → hard, strengths list → medium. RAG context aur critique injection dono support karta hai.
+**What it does:**
+Three category prompts — Behavioral, Technical, Role-Specific. Each prompt embeds difficulty rules: skills in the gaps list → hard, skills in the strengths list → medium. Both RAG context and critique injection are supported.
 
-**Interview mein kaise explain karein:**
-"Difficulty calibration LLM instruction mein hard-coded hai — prompt mein clearly likha hai 'agar skill GAPS mein hai toh hard assign karo'. Ye rule-based approach LLM ke arbitrary choices se zyada reliable hai. Self-healing ke liye critique section dynamically inject hota hai agar previous attempt fail ho."
+**Design notes:**
+Difficulty calibration is hard-coded into the LLM instructions — the prompt explicitly says "if a skill is in GAPS, assign hard". This rule-based approach is more reliable than letting the LLM choose arbitrarily. For self-healing, a critique section is injected dynamically when the previous attempt failed.
 
 ---
 
 ### 3. Supervisor MCP Server (`backend/supervisor/mcp_server.py`)
 
-**Kya kaam karta hai (Roman Urdu):**
-Poori pipeline ka orchestrator hai. Har session ka state track karta hai, agents background mein chalata hai, aur auto-advance karta hai: Agent 1 done → automatically Agent 2 start. FastAPI pe mount hua hai `/supervisor` prefix pe. In-memory session store hai — production mein Redis se replace ho sakta hai.
+**What it does:**
+The orchestrator of the whole pipeline. It tracks each session's state, runs agents in the background, and auto-advances: Agent 1 done → Agent 2 starts automatically. It is mounted on FastAPI under the `/supervisor` prefix. The session store is in-memory and could be replaced with Redis in production.
 
-**Konsi skill use hui:** FastAPI BackgroundTasks + asyncio.Lock + asyncio.to_thread + Pydantic v2
+**Tech used:** FastAPI BackgroundTasks + asyncio.Lock + asyncio.to_thread + Pydantic v2
 
-**Interview mein kaise explain karein:**
-"MCP server ek event-driven state machine hai. `asyncio.to_thread` se blocking LLM calls ko async event loop se alag thread mein chalaya — FastAPI block nahi hota. `asyncio.Lock` se concurrent requests pe race conditions se bacha. Agent1 → Agent2 auto-advance `asyncio.ensure_future` se hoti hai — polling nahi, push-based transition hai."
+**Design notes:**
+The MCP server is an event-driven state machine. `asyncio.to_thread` runs blocking LLM calls in a separate thread so the async event loop (and FastAPI) is not blocked. `asyncio.Lock` prevents race conditions on concurrent requests. The Agent 1 → Agent 2 auto-advance uses `asyncio.ensure_future` — a push-based transition, not polling.
 
-**Workflow step by step:**
-1. `POST /dispatch` → new session create → background task → Agent 1 run
-2. Agent 1 complete → state: `AGENT1_DONE` → auto-advance → Agent 2 run
-3. Agent 2 complete → state: `AGENT3_READY` → wait for user
-4. `GET /status` → frontend polling se progress check
+**Workflow:**
+1. `POST /dispatch` → create new session → background task → run Agent 1
+2. Agent 1 complete → state: `AGENT1_DONE` → auto-advance → run Agent 2
+3. Agent 2 complete → state: `AGENT3_READY` → wait for the user
+4. `GET /status` → the frontend checks progress
 5. `POST /escalate` → max retries hit → state: `FAILED`
 
 **State Machine:**
@@ -306,17 +306,17 @@ IDLE → AGENT1_RUNNING → AGENT1_DONE → AGENT2_RUNNING → AGENT2_DONE
 
 ### 4. Router — Dynamic Routing (`backend/supervisor/router.py`)
 
-**Kya kaam karta hai (Roman Urdu):**
-State machine transition table yahan define hai. Current state dekh ke next agent decide hota hai. Agent factory bhi yahan hai — agent name se class instantiate hoti hai. Circular imports se bachne ke liye agent imports yahan hain, mcp_server.py mein nahi.
+**What it does:**
+The state machine transition table is defined here. The next agent is decided by looking at the current state. The agent factory also lives here — a class is instantiated from an agent name. Agent imports are here rather than in mcp_server.py to avoid circular imports.
 
-**Interview mein kaise explain karein:**
-"Router ko deliberately mcp_server se alag rakha — separation of concerns. mcp_server HTTP layer sambhalta hai, router business logic. `_STATE_TO_AGENT` dict se routing declarative hai — naya agent add karna sirf ek line ka kaam hai. `detect_parallel_ready()` future extension point hai jab parallel agent execution add karni ho."
+**Design notes:**
+The router is deliberately separate from mcp_server — separation of concerns: mcp_server handles the HTTP layer, the router handles business logic. Routing is declarative through the `_STATE_TO_AGENT` dict, so adding a new agent is a one-line change. `detect_parallel_ready()` is a future extension point for parallel agent execution.
 
 **Workflow:**
 1. `get_next_agent_name(state)` → transition table lookup
-2. `build_agent(name, session_id)` → correct agent class instantiate
+2. `build_agent(name, session_id)` → instantiate the correct agent class
 3. `run_agent(name, session_id, input_data)` → `agent.run()` synchronously
-4. Result wapas `mcp_server.py` ko — state update hoti hai
+4. The result goes back to `mcp_server.py`, which updates the state
 
 ---
 
@@ -324,66 +324,66 @@ State machine transition table yahan define hai. Current state dekh ke next agen
 
 ### 1. Speech-to-Text — `backend/voice/stt.py`
 
-**Kya kaam karta hai (Roman Urdu):**
-Local Whisper "base" model se audio file ko text mein convert karta hai — koi API nahi, koi cost nahi. Lazy loading hai: sirf pehli call pe model download hota hai, baad mein cache mein rehta hai. `is_silent()` helper empty answers detect karta hai taake LLM call waste na ho.
+**What it does:**
+Converts an audio file to text with the local Whisper "base" model — no API, no cost. Loading is lazy: the model is downloaded on the first call only and cached afterwards. The `is_silent()` helper detects empty answers so no LLM call is wasted on them.
 
-**Konsi skill use hui:** openai-whisper (local), wave module, lazy singleton pattern
+**Tech used:** openai-whisper (local), wave module, lazy singleton pattern
 
-**Interview mein kaise explain karein:**
-"Whisper 'base' model choose kiya — CPU pe chalata hai, 74M parameters, English accuracy ~95%. Lazy loading se cold start problem solve ki: model sirf tab load hota hai jab pehla audio aata hai. `is_silent()` se empty audio detect karta hai — RMS dB threshold use kiya, LLM ko unnecessary zero-score calls se bachaya."
+**Design notes:**
+The Whisper "base" model runs on CPU, has 74M parameters, and reaches roughly 95% English accuracy. Lazy loading solves the cold-start problem: the model loads only when the first audio arrives. `is_silent()` uses an RMS dB threshold to detect empty audio, saving the LLM from unnecessary zero-score calls.
 
-**Workflow:** `transcribe(audio_path)` → model load (if first time) → Whisper inference → clean text return
+**Workflow:** `transcribe(audio_path)` → load model (first time only) → Whisper inference → return clean text
 
 ---
 
 ### 2. Text-to-Speech — `backend/voice/tts.py`
 
-**Kya kaam karta hai (Roman Urdu):**
-Coqui TTS se text ko WAV audio file mein convert karta hai — bilkul local. `speak_question_intro()` question number ke saath bolta hai, `speak_follow_up()` follow-up ke liye. Generated files `data/audio/tts/` mein UUID-named save hoti hain.
+**What it does:**
+Converts text to a WAV audio file with Coqui TTS — entirely local. `speak_question_intro()` speaks a question along with its number, and `speak_follow_up()` handles follow-ups. Generated files are saved to `data/audio/tts/` with UUID names.
 
-**Konsi skill use hui:** Coqui TTS (tts_models/en/ljspeech/tacotron2-DDC), lazy loading
+**Tech used:** Coqui TTS (tts_models/en/ljspeech/tacotron2-DDC), lazy loading
 
-**Interview mein kaise explain karein:**
-"Coqui TTS choose kiya kyunki yeh production-quality open-source TTS hai. tacotron2-DDC model CPU pe bhi reasonable speed pe chalta hai. Text 500 chars pe truncate kiya — TTS quality long inputs pe degrade hoti hai. File naming UUID-based hai taake concurrent sessions conflict na karein."
+**Design notes:**
+Coqui TTS is a production-quality open-source TTS. The tacotron2-DDC model runs at a reasonable speed even on CPU. Text is truncated at 500 characters because TTS quality degrades on long inputs. File names are UUID-based so concurrent sessions do not conflict.
 
-**Workflow:** `speak(text)` → TTS model load (first time) → WAV synthesis → `data/audio/tts/tts_XXXX.wav` save → path return
+**Workflow:** `speak(text)` → load TTS model (first time) → WAV synthesis → save `data/audio/tts/tts_XXXX.wav` → return path
 
 ---
 
 ### 3. LiveKit Manager — `backend/voice/livekit_manager.py`
 
-**Kya kaam karta hai (Roman Urdu):**
-LiveKit WebRTC room manage karta hai — agent question audio publish karta hai, user ka answer audio receive karta hai. JWT token generation, WAV↔PCM conversion, aur async/sync bridging yahan implement hua hai. LiveKit configure nahi hai toh graceful fallback hai — local testing possible hai.
+**What it does:**
+Manages the LiveKit WebRTC room — the agent publishes question audio and receives the user's answer audio. JWT token generation, WAV↔PCM conversion, and async/sync bridging are implemented here. If LiveKit is not configured there is a graceful fallback, so local testing is possible.
 
-**Konsi skill use hui:** LiveKit Python SDK (livekit.rtc + livekit.api), asyncio, wave, JWT tokens
+**Tech used:** LiveKit Python SDK (livekit.rtc + livekit.api), asyncio, wave, JWT tokens
 
-**Interview mein kaise explain karein:**
-"LiveKit WebRTC use kiya real-time voice ke liye — direct audio streaming, no HTTP polling. Agent side pe publish_audio() AudioSource mein WAV frames inject karta hai. receive_audio() track_subscribed event pe AudioStream consume karta hai aur WAV mein save karta hai. asyncio.run() se sync wrapper banaya taake BaseAgent ke synchronous execute() mein kaam kare."
+**Design notes:**
+LiveKit provides WebRTC for real-time voice — direct audio streaming, no HTTP polling. On the agent side, `publish_audio()` injects WAV frames into an AudioSource. `receive_audio()` consumes an AudioStream on the `track_subscribed` event and saves it as WAV. A sync wrapper built with `asyncio.run()` lets it work inside BaseAgent's synchronous `execute()`.
 
 **Workflow:**
 1. `generate_room_token()` → JWT with VideoGrants
 2. `publish_audio(path)` → WAV→PCM chunks → LiveKit AudioFrames → broadcast
-3. `receive_audio(timeout)` → track_subscribed → AudioStream consume → PCM→WAV save → path return
+3. `receive_audio(timeout)` → track_subscribed → consume AudioStream → save PCM→WAV → return path
 
 ---
 
 ### 4. Voice Interview Agent — `backend/agents/voice_interview/agent.py`
 
-**Kya kaam karta hai (Roman Urdu):**
-Agent 3 — poora interview conduct karta hai. Har sawal ke liye: TTS se bolta hai, LiveKit pe broadcast karta hai, user ka jawab record karta hai, Whisper se transcribe karta hai, Groq LLM se evaluate karta hai. Score 5 ya kam ho toh follow-up question bhi puchta hai. End mein SessionReport generate karta hai.
+**What it does:**
+Agent 3 conducts the entire interview. For each question: it speaks via TTS, broadcasts on LiveKit, records the user's answer, transcribes with Whisper, and evaluates with the Groq LLM. If the score is 5 or lower, it also asks a follow-up question. At the end it generates a SessionReport.
 
-**Konsi skill use hui:** BaseAgent inheritance, ChatGroq (2 temperatures), TTS+STT+LiveKit integration, Pydantic v2
+**Tech used:** BaseAgent inheritance, ChatGroq (2 temperatures), TTS+STT+LiveKit integration, Pydantic v2
 
-**Interview mein kaise explain karein:**
-"Voice agent mein do LLM instances use kiye — eval ke liye temperature=0.1 (consistent scoring), feedback ke liye temperature=0.4 (varied suggestions). Empty answer detection se LLM calls save kiye. Follow-up logic: score ≤ 5 AND non-empty follow_up field toh automatically follow-up ask hota hai. Voice modules lazy-init hain — import errors propagate nahi hote agent startup pe."
+**Design notes:**
+The voice agent uses two LLM instances — temperature=0.1 for evaluation (consistent scoring) and temperature=0.4 for feedback (varied suggestions). Empty-answer detection saves LLM calls. Follow-up logic: if score ≤ 5 AND the follow_up field is non-empty, a follow-up is asked automatically. Voice modules are lazily initialized, so import errors do not propagate at agent startup.
 
-**Workflow step by step:**
+**Workflow:**
 1. Input: `QuestionGeneratorAgent.data` (behavioral + technical + role_specific lists)
 2. Flatten → ordered question list
 3. Init voice modules (TTS, STT, LiveKitManager)
-4. Per question loop:
+4. Per-question loop:
    - `speak_question_intro(text, n, total)` → WAV path
-   - `livekit.publish_audio(path)` → user hears question
+   - `livekit.publish_audio(path)` → user hears the question
    - `livekit.receive_audio(timeout=60)` → user's answer WAV
    - `transcribe(answer_wav)` → answer text
    - `_evaluate_answer()` → Groq → `AnswerEval` dict
@@ -396,25 +396,25 @@ Agent 3 — poora interview conduct karta hai. Har sawal ke liye: TTS se bolta h
 
 ### 5. Prompts — `backend/agents/voice_interview/prompts.py`
 
-**Kya kaam karta hai (Roman Urdu):**
-Teen prompt templates: EVAL_PROMPT (answer score karo 0-10), FEEDBACK_PROMPT (session ka overall assessment), FOLLOW_UP_PROMPT (targeted follow-up question generate karo). Har prompt scoring rubric ke saath آتا hai.
+**What it does:**
+Three prompt templates: EVAL_PROMPT (score an answer 0-10), FEEDBACK_PROMPT (overall assessment of the session), FOLLOW_UP_PROMPT (generate a targeted follow-up question). Each prompt ships with a scoring rubric.
 
-**Interview mein kaise explain karein:**
-"Evaluation prompt mein explicit scoring rubric embed kiya — 0-2: no answer, 3-4: partial, etc. Yeh LLM ko anchor deta hai taake scores consistent hon across questions. Feedback prompt recommendation ke rules bhi include karta hai: avg>=7 → hire, 5-6.9 → consider, <5 → reject. Yeh rule-based threshold LLM ke arbitrary judgements se zyada reliable hai."
+**Design notes:**
+The evaluation prompt embeds an explicit scoring rubric — 0-2: no answer, 3-4: partial, and so on. This anchors the LLM so scores stay consistent across questions. The feedback prompt also includes recommendation rules: avg >= 7 → hire, 5-6.9 → consider, < 5 → reject. These rule-based thresholds are more reliable than arbitrary LLM judgements.
 
 ---
 
 ### 6. Validators — `backend/agents/voice_interview/validator.py`
 
-**Kya kaam karta hai (Roman Urdu):**
-`AnswerEval` (single answer ka schema) aur `SessionReport` (full session ka schema) Pydantic v2 models hain. `model_validator(mode='after')` se `avg_score`, `total_questions`, aur `passed` auto-compute hote hain — LLM pe average calculate karne ka bharosa nahi karte.
+**What it does:**
+`AnswerEval` (schema for a single answer) and `SessionReport` (schema for the full session) are Pydantic v2 models. `model_validator(mode='after')` auto-computes `avg_score`, `total_questions`, and `passed` — the pipeline never trusts the LLM to calculate an average.
 
-**Interview mein kaise explain karein:**
-"SessionReport mein model_validator use kiya derived fields ke liye — avg_score = mean(answers.score) khud calculate hota hai. LLM ne jo bhi value diya woh overwrite ho jaata hai. Recommendation enum se type safety guarantee hai — 'hire/consider/reject' ke علاوہ kuch accept nahi hota."
+**Design notes:**
+SessionReport uses a model_validator for derived fields — avg_score = mean(answers.score) is computed directly, and whatever value the LLM provided is overwritten. A recommendation enum guarantees type safety — nothing other than 'hire/consider/reject' is accepted.
 
 ---
 
-*Interview + skill notes: `docs/SKILLS_NOTES.md`*
+*Skill notes: `docs/SKILLS_NOTES.md`*
 
 ---
 
@@ -422,42 +422,42 @@ Teen prompt templates: EVAL_PROMPT (answer score karo 0-10), FEEDBACK_PROMPT (se
 
 ### 1. Backend REST API + WebSocket — `backend/main.py`
 
-**Kya kaam karta hai (Roman Urdu):**
-FastAPI application hai jo frontend ke liye saare endpoints expose karta hai. CV+JD analysis start karo, pipeline status check karo, results lo, interview start karo — sab kuch HTTP + WebSocket se. `WebSocketManager` real-time progress broadcast karta hai — frontend ko har state change immediately milta hai bina polling ke.
+**What it does:**
+A FastAPI application exposing all the endpoints the frontend needs. Start a CV+JD analysis, check pipeline status, fetch results, start the interview — all over HTTP + WebSocket. `WebSocketManager` broadcasts real-time progress, so the frontend receives every state change immediately without polling.
 
-**Konsi skill use hui:** FastAPI lifespan, BackgroundTasks, WebSocket, asyncio polling, CORS middleware
+**Tech used:** FastAPI lifespan, BackgroundTasks, WebSocket, asyncio polling, CORS middleware
 
-**Interview mein kaise explain karein:**
-"Backend mein WebSocket-based real-time notification system banaya. WS handler har 500ms pe state check karta hai aur sirf tab broadcast karta hai jab state change ho — bandwidth waste nahi hoti. `_strip_internal()` helper se internal LLM keys (jaise `_cv_parsed`, `_critique`) frontend tak nahi pahunchte — clean API contract. `asyncio.to_thread()` se blocking agent calls async context mein run hote hain."
+**Design notes:**
+The backend has a WebSocket-based real-time notification system. The WS handler checks state every 500ms and broadcasts only when the state changes, so no bandwidth is wasted. The `_strip_internal()` helper keeps internal LLM keys (such as `_cv_parsed`, `_critique`) from reaching the frontend — a clean API contract. `asyncio.to_thread()` runs blocking agent calls inside the async context.
 
 **Endpoints:**
 ```
-POST /api/analyze              → CV + JD submit, session_id return
-GET  /api/status/{session_id}  → pipeline current state
+POST /api/analyze              → submit CV + JD, returns session_id
+GET  /api/status/{session_id}  → current pipeline state
 GET  /api/results/{session_id} → full analysis output + questions + report
-POST /api/interview/start/{id} → LiveKit token generate, Agent 3 start
+POST /api/interview/start/{id} → generate LiveKit token, start Agent 3
 WS   /ws/{session_id}          → real-time state updates (JSON)
 ```
 
-**Workflow step by step:**
-1. `POST /api/analyze` → `_PipelineSession` create → BackgroundTask → Agent 1 dispatch
-2. WS client connect → 500ms poll loop → state change pe `{"state": "agent1_running"}` broadcast
-3. Agent 1 done → auto-advance → Agent 2 → `agent2_done` broadcast
-4. `GET /api/results` → `_strip_internal()` → clean JSON return
-5. `POST /api/interview/start` → LiveKit token generate → Agent 3 background mein start
-6. COMPLETED/FAILED → WS close hoti hai
+**Workflow:**
+1. `POST /api/analyze` → create `_PipelineSession` → BackgroundTask → dispatch Agent 1
+2. WS client connects → 500ms poll loop → broadcast `{"state": "agent1_running"}` on state change
+3. Agent 1 done → auto-advance → Agent 2 → broadcast `agent2_done`
+4. `GET /api/results` → `_strip_internal()` → return clean JSON
+5. `POST /api/interview/start` → generate LiveKit token → start Agent 3 in the background
+6. COMPLETED/FAILED → the WS closes
 
 ---
 
 ### 2. TypeScript API Client — `frontend/src/lib/api.ts`
 
-**Kya kaam karta hai (Roman Urdu):**
-Frontend ka poora backend communication yahan se hota hai. TypeScript interfaces sab API responses ke liye define hain — type safety end-to-end. `createWebSocket()` auto-reconnection nahi karta (by design — interview session one-shot hoti hai). `pollUntil()` helper slow networks ke liye fallback hai.
+**What it does:**
+All frontend-to-backend communication goes through here. TypeScript interfaces are defined for every API response — type safety end to end. `createWebSocket()` does not auto-reconnect (by design — an interview session is one-shot). `pollUntil()` is a fallback helper for slow networks.
 
-**Konsi skill use hui:** TypeScript generics, fetch API, WebSocket, type-safe interfaces
+**Tech used:** TypeScript generics, fetch API, WebSocket, type-safe interfaces
 
-**Interview mein kaise explain karein:**
-"API layer mein single responsibility raha — sirf HTTP/WS calls, koi business logic nahi. `AnalysisResult`, `Questions`, `InterviewReport` jaise TypeScript interfaces define kiye jo backend Pydantic models se match karte hain — koi type assertion (`as any`) nahi. `pollUntil()` exponential backoff nahi karta kyunki WS primary hai — yeh sirf edge case fallback hai."
+**Design notes:**
+The API layer keeps a single responsibility — only HTTP/WS calls, no business logic. TypeScript interfaces such as `AnalysisResult`, `Questions`, and `InterviewReport` mirror the backend Pydantic models, with no type assertions (`as any`). `pollUntil()` does not use exponential backoff because WebSocket is the primary channel — it is only an edge-case fallback.
 
 **Key types:**
 ```typescript
@@ -471,13 +471,13 @@ WsStateUpdate     → state: string
 
 ### 3. Upload Page — `frontend/src/app/page.tsx`
 
-**Kya kaam karta hai (Roman Urdu):**
-CV aur JD paste karne ka main page hai. Do `CVUploader` components hain — ek CV ke liye, ek JD ke liye. Sample data button se demo content load hota hai. Submit pe validation hoti hai (CV min 50 chars, JD min 30 chars), phir `analyzeCV()` call hoti hai aur `/results` page pe redirect.
+**What it does:**
+The main page for pasting the CV and JD. It has two `CVUploader` components — one for the CV, one for the JD. A sample-data button loads demo content. On submit, validation runs (CV min 50 chars, JD min 30 chars), then `analyzeCV()` is called and the user is redirected to `/results`.
 
-**Konsi skill use hui:** Next.js App Router, React hooks (useState, useRouter), form validation
+**Tech used:** Next.js App Router, React hooks (useState, useRouter), form validation
 
-**Interview mein kaise explain karein:**
-"Upload page deliberately simple rakha — koi file upload nahi, sirf textarea. Yeh user experience ke liye better hai: copy-paste se job seekers ka workflow match karta hai. Client-side validation se unnecessary API calls avoid hoti hain. Loading state se double-submit prevent hota hai."
+**Design notes:**
+The upload page is deliberately simple — no file upload, just a textarea. This is better for UX because copy-paste matches how job seekers actually work. Client-side validation avoids unnecessary API calls, and a loading state prevents double-submit.
 
 **Workflow:** Paste CV → Paste JD → Validate → `analyzeCV(cv, jd)` → session_id → `/results?session_id=...`
 
@@ -485,44 +485,44 @@ CV aur JD paste karne ka main page hai. Do `CVUploader` components hain — ek C
 
 ### 4. Results Page — `frontend/src/app/results/page.tsx`
 
-**Kya kaam karta hai (Roman Urdu):**
-Pipeline ka live dashboard hai. WebSocket se real-time updates aate hain — `ProgressTracker` har agent ka status dikhata hai. Jab Agent 1 done ho jaata hai, `ScoreCard` (match score) aur strengths/gaps badges appear hote hain. Jab Agent 2 complete ho, `QuestionList` show hota hai. "Start Interview" button Agent 3 ke liye.
+**What it does:**
+A live dashboard for the pipeline. Real-time updates arrive over WebSocket — `ProgressTracker` shows each agent's status. When Agent 1 finishes, the `ScoreCard` (match score) and strengths/gaps badges appear. When Agent 2 completes, the `QuestionList` is shown. A "Start Interview" button leads to Agent 3.
 
-**Konsi skill use hui:** Next.js useSearchParams, WebSocket client, conditional rendering, React state
+**Tech used:** Next.js useSearchParams, WebSocket client, conditional rendering, React state
 
-**Interview mein kaise explain karein:**
-"Results page progressive disclosure use karta hai — data jaise-jaise available hoti hai waise-waise appear hoti hai. WebSocket primary channel hai, polling fallback sirf WS fail hone pe activate hota hai. `useSearchParams()` se URL mein session_id stored hai — page refresh pe bhi state recover hoti hai."
+**Design notes:**
+The results page uses progressive disclosure — data appears as it becomes available. WebSocket is the primary channel, and the polling fallback activates only if the WS fails. The session_id is stored in the URL via `useSearchParams()`, so state recovers even after a page refresh.
 
 **Workflow:**
-1. `session_id` URL se read
+1. Read `session_id` from the URL
 2. WS connect → state updates
-3. `agent1_done` → `getResults()` → ScoreCard + gaps render
-4. `agent2_done` → QuestionList render
+3. `agent1_done` → `getResults()` → render ScoreCard + gaps
+4. `agent2_done` → render QuestionList
 5. "Start Interview" → `/interview?session_id=...`
 
 ---
 
 ### 5. ScoreCard Component — `frontend/src/components/ScoreCard.tsx`
 
-**Kya kaam karta hai (Roman Urdu):**
-Match score 0-100 ko SVG circular progress bar mein dikhata hai. Score ke hisaab se color change hota hai: green (≥70 strong match), amber (40-69 partial), red (<40 weak). `stroke-dashoffset` CSS transition se smooth animation hai.
+**What it does:**
+Displays the 0-100 match score as an SVG circular progress bar. The color changes with the score: green (≥70 strong match), amber (40-69 partial), red (<40 weak). A `stroke-dashoffset` CSS transition gives a smooth animation.
 
-**Konsi skill use hui:** SVG rendering, CSS animations, computed geometry (circumference math)
+**Tech used:** SVG rendering, CSS animations, computed geometry (circumference math)
 
-**Interview mein kaise explain karein:**
-"SVG path animation use kiya — `stroke-dasharray` = circumference, `stroke-dashoffset` = fill amount. Yeh CSS transition ke saath smooth counter-animation deta hai. Score thresholds business rules se define hain: 70+ strong match, 40-69 consider, below 40 rethink. Inline `style` props sirf dynamic values ke liye use kiye — baaki Tailwind."
+**Design notes:**
+SVG path animation: `stroke-dasharray` = circumference, `stroke-dashoffset` = fill amount, which gives a smooth counter-animation with a CSS transition. The score thresholds follow business rules: 70+ strong match, 40-69 consider, below 40 rethink. Inline `style` props are used only for dynamic values — everything else is Tailwind.
 
 ---
 
 ### 6. VoiceInterface Component — `frontend/src/components/VoiceInterface.tsx`
 
-**Kya kaam karta hai (Roman Urdu):**
-Voice interview ka poora UI hai. Current question card, phase indicator (waiting/asking/recording/evaluating), aur per-question scores dikhata hai. WebSocket se agent ki state changes reflect hoti hain. Interview complete hone pe `FinalReport` sub-component show hota hai jisme avg score, recommendation badge, strong/weak areas, improvement tips, aur per-question breakdown hai.
+**What it does:**
+The complete UI for the voice interview. It shows the current question card, a phase indicator (waiting/asking/recording/evaluating), and per-question scores. Agent state changes are reflected over WebSocket. When the interview completes, a `FinalReport` sub-component shows the avg score, recommendation badge, strong/weak areas, improvement tips, and a per-question breakdown.
 
-**Konsi skill use hui:** React phase state machine, WebSocket integration, dynamic SVG/CSS, conditional rendering
+**Tech used:** React phase state machine, WebSocket integration, dynamic SVG/CSS, conditional rendering
 
-**Interview mein kaise explain karein:**
-"VoiceInterface ek frontend state machine hai — `InterviewPhase` type se possible states define hain, `PhaseIndicator` component har state ke liye alag icon/animation render karta hai. `FinalReport` separate component mein extract kiya — separation of concerns. LiveKit token present hone pe real-time indicator show hota hai, absent hone pe graceful fallback message."
+**Design notes:**
+VoiceInterface is a frontend state machine — the `InterviewPhase` type defines the possible states, and the `PhaseIndicator` component renders a different icon/animation for each. `FinalReport` is extracted into a separate component for separation of concerns. When a LiveKit token is present a real-time indicator is shown; when absent, a graceful fallback message appears.
 
 **Phase states:** `waiting → asking → recording → evaluating → next → completed`
 
@@ -541,9 +541,9 @@ Voice interview ka poora UI hai. Current question card, phase indicator (waiting
 
 **`frontend/src/components/ProgressTracker.tsx`** — 4-step pipeline tracker: CV+JD Uploaded → CV Analysis → Questions Generated → Voice Interview. done/running/pending states with animated connectors.
 
-**`frontend/src/components/QuestionList.tsx`** — Accordion per category (behavioral/technical/role_specific). QuestionCard mein difficulty badge, skill_tag, aur collapsible follow-up.
+**`frontend/src/components/QuestionList.tsx`** — An accordion per category (behavioral/technical/role_specific). Each QuestionCard has a difficulty badge, skill_tag, and a collapsible follow-up.
 
-**`frontend/src/components/CVUploader.tsx`** — Reusable textarea with char count, min-length validation, red border on tooShort, clear button.
+**`frontend/src/components/CVUploader.tsx`** — A reusable textarea with character count, min-length validation, a red border when too short, and a clear button.
 
-**Interview mein bolna:**
-"Frontend mein component-driven architecture rakhi — har component single responsibility ke saath. Tailwind utility classes ke upar semantic component classes define kiye (`.card`, `.btn-primary`) — yeh consistency guarantee karta hai without a full design system. TypeScript strict mode se prop type errors build time pe catch hote hain, runtime nahi."
+**Design notes:**
+The frontend follows a component-driven architecture, with each component having a single responsibility. Semantic component classes (`.card`, `.btn-primary`) sit on top of Tailwind utilities, which keeps things consistent without a full design system. TypeScript strict mode catches prop type errors at build time rather than at runtime.
