@@ -1,6 +1,6 @@
-// Yeh file backend API ke saath communicate karti hai.
-// Har endpoint ke liye ek typed function hai — components directly fetch nahi karte.
-// BASE_URL env variable se aata hai — production mein Render URL set karo.
+// Communicates with the backend API.
+// One typed function per endpoint — components never call fetch directly.
+// BASE_URL comes from an env variable — set it to the Render URL in production.
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 const WS_URL = process.env.NEXT_PUBLIC_WS_URL ?? "ws://localhost:8000";
@@ -122,7 +122,7 @@ async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
 // Public API
 // ---------------------------------------------------------------------------
 
-/** CV + JD text submit karo → session_id milega. */
+/** Submit CV + JD text → returns a session_id. */
 export async function analyzeCV(
   cv_text: string,
   jd_text: string
@@ -134,24 +134,24 @@ export async function analyzeCV(
   return data.session_id;
 }
 
-/** Current pipeline state lo. */
+/** Get the current pipeline state. */
 export async function getStatus(session_id: string): Promise<PipelineStatus> {
   return apiFetch<PipelineStatus>(`/api/status/${session_id}`);
 }
 
-/** Full results lo — partial ya complete. */
+/** Get the full results — partial or complete. */
 export async function getResults(session_id: string): Promise<FullResults> {
   return apiFetch<FullResults>(`/api/results/${session_id}`);
 }
 
-/** Voice interview shuru karo — Agent 3 dispatch hoga. */
+/** Start the voice interview — dispatches Agent 3. */
 export async function startInterview(
   session_id: string
 ): Promise<InterviewStartResult> {
   return apiFetch<InterviewStartResult>(`/api/interview/start/${session_id}`, { method: "POST" });
 }
 
-/** WebSocket connection create karo — real-time pipeline updates ke liye. */
+/** Create a WebSocket connection — for real-time pipeline updates. */
 export function createWebSocket(
   session_id: string,
   onMessage: (update: WsStateUpdate) => void,

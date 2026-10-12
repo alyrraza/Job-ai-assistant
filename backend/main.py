@@ -1,6 +1,6 @@
-# FastAPI app ka main entry point — saare public API endpoints yahan hain.
-# WebSocket se real-time pipeline progress frontend ko milti hai.
-# Supervisor MCP /supervisor prefix pe mount hai — internal orchestration.
+# Main entry point of the FastAPI app — all public API endpoints are here.
+# Real-time pipeline progress reaches the frontend over WebSocket.
+# The Supervisor MCP is mounted under the /supervisor prefix — internal orchestration.
 
 from __future__ import annotations
 
@@ -148,7 +148,7 @@ class InterviewStartResponse(BaseModel):
 
 async def _dispatch_with_broadcast(session_id: str, agent_name: str) -> None:
     """
-    Pipeline step chalao aur har state change pe WebSocket clients ko update karo.
+    Run a pipeline step and update WebSocket clients on every state change.
     """
     await _run_pipeline_step(session_id, agent_name)
     session = _sessions.get(session_id)
@@ -193,8 +193,8 @@ async def health() -> dict[str, str]:
 @app.post("/api/analyze", response_model=AnalyzeResponse, status_code=status.HTTP_202_ACCEPTED)
 async def analyze(request: AnalyzeRequest, background_tasks: BackgroundTasks) -> AnalyzeResponse:
     """
-    CV + JD text lo → pipeline shuru karo → session_id return karo.
-    Agent 1 (CV Analyzer) + Agent 2 (Question Generator) background mein chalte hain.
+    Take CV + JD text → start the pipeline → return the session_id.
+    Agent 1 (CV Analyzer) + Agent 2 (Question Generator) run in the background.
     """
     session_id = str(uuid.uuid4())
 
@@ -218,7 +218,7 @@ async def analyze(request: AnalyzeRequest, background_tasks: BackgroundTasks) ->
 @app.get("/api/status/{session_id}", response_model=StatusResponse)
 async def get_status(session_id: str) -> StatusResponse:
     """
-    Current pipeline state — frontend polling ya WS fallback ke liye.
+    Current pipeline state — for frontend polling or the WS fallback.
     """
     session = _sessions.get(session_id)
     if not session:
@@ -245,7 +245,7 @@ async def get_status(session_id: str) -> StatusResponse:
 async def get_results(session_id: str) -> ResultsResponse:
     """
     Full pipeline results — analysis, questions, interview report.
-    Partial results (only agent1 done) bhi return ho sakte hain.
+    Partial results (only agent1 done) can also be returned.
     """
     session = _sessions.get(session_id)
     if not session:
@@ -266,9 +266,9 @@ async def start_interview(
     session_id: str, background_tasks: BackgroundTasks
 ) -> InterviewStartResponse:
     """
-    Agent 3 (Voice Interview) ko trigger karo.
-    Agent 2 pehle complete hona chahiye (questions ready state).
-    LiveKit token frontend ko return hota hai.
+    Trigger Agent 3 (Voice Interview).
+    Agent 2 must complete first (questions ready state).
+    The LiveKit token is returned to the frontend.
     """
     session = _sessions.get(session_id)
     if not session:
@@ -322,7 +322,7 @@ async def start_interview(
 
 
 async def _run_agent3_with_broadcast(session_id: str, input_data: dict[str, Any]) -> None:
-    """Agent 3 run karo aur WS clients ko notify karo."""
+    """Run Agent 3 and notify WS clients."""
     session = _sessions.get(session_id)
     if not session:
         return
@@ -362,8 +362,8 @@ async def _run_agent3_with_broadcast(session_id: str, input_data: dict[str, Any]
 @app.websocket("/ws/{session_id}")
 async def websocket_endpoint(websocket: WebSocket, session_id: str) -> None:
     """
-    Connect karo → pipeline state ka live stream milega.
-    Har 500ms pe state check hoti hai aur sirf changed state broadcast hoti hai.
+    Connect → you get a live stream of the pipeline state.
+    State is checked every 500ms and only a changed state is broadcast.
     """
     await ws_manager.connect(session_id, websocket)
     last_state: str | None = None
@@ -400,7 +400,7 @@ async def websocket_endpoint(websocket: WebSocket, session_id: str) -> None:
 # ---------------------------------------------------------------------------
 
 def _strip_internal(data: dict[str, Any] | None) -> dict[str, Any] | None:
-    """_cv_parsed, _jd_parsed jaise internal keys frontend ko mat bhejo."""
+    """Do not send internal keys like _cv_parsed, _jd_parsed to the frontend."""
     if data is None:
         return None
     return {k: v for k, v in data.items() if not k.startswith("_")}

@@ -1,6 +1,6 @@
-# Yeh file Voice Interview agent ke output schemas define karti hai.
-# AnswerEval: har sawal ka score + feedback. SessionReport: poora session ka summary.
-# avg_score aur recommendation auto-compute hote hain — LLM pe count karne ka bharosa nahi.
+# Defines the output schemas of the Voice Interview agent.
+# AnswerEval: score + feedback per question. SessionReport: summary of the whole session.
+# avg_score and recommendation are computed automatically — we do not trust the LLM to calculate them.
 
 from __future__ import annotations
 
@@ -17,7 +17,7 @@ class Recommendation(str, Enum):
 
 
 class AnswerEval(BaseModel):
-    """Ek single answer ka evaluation — score, feedback, follow-up."""
+    """Evaluation of a single answer — score, feedback, follow-up."""
 
     score: int = Field(..., ge=0, le=10, description="Answer quality score 0-10")
     feedback: str = Field(..., min_length=10, description="Honest evaluation of the answer")
@@ -62,7 +62,7 @@ class AnswerEval(BaseModel):
 
 
 class SessionReport(BaseModel):
-    """Poora voice interview session ka final report."""
+    """Final report of the whole voice interview session."""
 
     answers: list[AnswerEval] = Field(..., min_length=1)
     overall_feedback: str = Field(..., min_length=20)
@@ -100,7 +100,7 @@ class SessionReport(BaseModel):
 
     @model_validator(mode="after")
     def _compute_derived(self) -> "SessionReport":
-        """avg_score, total_questions, passed — khud calculate karo."""
+        """Compute avg_score, total_questions and passed ourselves."""
         scores = [a.score for a in self.answers]
         self.total_questions = len(scores)
         self.avg_score = round(sum(scores) / len(scores), 2) if scores else 0.0
@@ -116,7 +116,7 @@ def validate_answer_eval(
     raw: dict[str, Any],
 ) -> tuple[bool, Optional[str], Optional[AnswerEval]]:
     """
-    LLM ke answer evaluation JSON ko validate karo.
+    Validate the LLM's answer evaluation JSON.
 
     Returns:
         (True, None, AnswerEval) on success
@@ -133,7 +133,7 @@ def validate_session_report(
     raw: dict[str, Any],
 ) -> tuple[bool, Optional[str], Optional[SessionReport]]:
     """
-    Full session report dict ko validate karo.
+    Validate the full session report dict.
 
     Returns:
         (True, None, SessionReport) on success

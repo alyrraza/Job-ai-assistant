@@ -1,6 +1,6 @@
-# Yeh file ChromaDB se similar documents retrieve karti hai.
-# Query text do → embedding banao → top-3 similar CV patterns wapas lo.
-# CV Analyzer agent yeh use karega context improve karne ke liye.
+# Retrieves similar documents from ChromaDB.
+# Give a query text → build an embedding → get back the top-3 similar CV patterns.
+# The CV Analyzer agent will use this to improve its context.
 
 from __future__ import annotations
 
@@ -14,7 +14,7 @@ from backend.utils.logger import logger
 
 @dataclass
 class RetrievedChunk:
-    """Ek retrieved document chunk — text aur metadata ke saath."""
+    """A retrieved document chunk — with its text and metadata."""
 
     doc_id: str
     text: str
@@ -29,11 +29,11 @@ def retrieve_similar_cv_patterns(
     where: Optional[dict] = None,
 ) -> list[RetrievedChunk]:
     """
-    Query text se similar CV patterns retrieve karo ChromaDB se.
+    Retrieve similar CV patterns from ChromaDB for the query text.
 
     Args:
         query_text:  Search query — usually a skill or JD snippet.
-        n:           Kitne results chahiye (default 3).
+        n:           How many results are wanted (default 3).
         min_score:   Minimum cosine similarity threshold (0.0 = no filter).
         where:       Optional ChromaDB metadata filter dict.
 
@@ -74,11 +74,11 @@ def retrieve_similar_questions(
     category: Optional[str] = None,
 ) -> list[RetrievedChunk]:
     """
-    Similar interview questions retrieve karo.
+    Retrieve similar interview questions.
 
     Args:
-        query_text: Skill ya topic jo question mein hona chahiye.
-        n_results:  Kitne questions chahiye (default 5).
+        query_text: The skill or topic the question should be about.
+        n_results:  How many questions are wanted (default 5).
         category:   Optional filter — "behavioral", "technical", "role_specific".
     """
     if not query_text.strip():
@@ -108,8 +108,8 @@ def retrieve_similar_questions(
 
 def format_chunks_for_prompt(chunks: list[RetrievedChunk], max_chars: int = 2000) -> str:
     """
-    Retrieved chunks ko LLM prompt mein inject karne ke liye format karo.
-    Token budget se zyada nahi jaana chahiye.
+    Format the retrieved chunks for injection into the LLM prompt.
+    Must not exceed the token budget.
     """
     if not chunks:
         return ""
@@ -134,7 +134,7 @@ def _parse_chroma_results(
     raw: dict,
     min_score: float = 0.0,
 ) -> list[RetrievedChunk]:
-    """ChromaDB query result dict ko clean list mein convert karo."""
+    """Convert the ChromaDB query result dict into a clean list."""
     ids = raw.get("ids", [[]])[0]
     documents = raw.get("documents", [[]])[0]
     metadatas = raw.get("metadatas", [[]])[0]

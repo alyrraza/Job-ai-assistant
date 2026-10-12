@@ -1,7 +1,7 @@
 "use client";
 
 // Reusable CV/JD textarea with character count and validation feedback.
-// page.tsx mein use hota hai — standalone component taake reuse ho sake.
+// Used in page.tsx — a standalone component so it can be reused.
 
 import { type ChangeEvent } from "react";
 import type { LucideIcon } from "lucide-react";

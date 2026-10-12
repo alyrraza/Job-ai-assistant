@@ -1,6 +1,6 @@
-# Yeh file ChromaDB vector store setup karti hai — do collections hain.
-# "cv_patterns": successful CV-JD matches store hote hain future reference ke liye.
-# "interview_questions": past questions store hote hain taake agent similar sawaal generate kare.
+# Sets up the ChromaDB vector store — there are two collections.
+# "cv_patterns": stores successful CV-JD matches for future reference.
+# "interview_questions": stores past questions so the agent can generate similar ones.
 
 from __future__ import annotations
 
@@ -15,7 +15,7 @@ from backend.utils.logger import logger
 
 settings = get_settings()
 
-# Collection names — yahan define karo taake typos na ho
+# Collection names — defined here to avoid typos
 COLLECTION_CV_PATTERNS = "cv_patterns"
 COLLECTION_INTERVIEW_QUESTIONS = "interview_questions"
 
@@ -23,7 +23,7 @@ COLLECTION_INTERVIEW_QUESTIONS = "interview_questions"
 class VectorStore:
     """
     ChromaDB wrapper — singleton pattern.
-    Do collections manage karta hai: CV patterns aur interview questions.
+    Manages two collections: CV patterns and interview questions.
     """
 
     _instance: Optional["VectorStore"] = None
@@ -54,7 +54,7 @@ class VectorStore:
 
     @classmethod
     def get_instance(cls) -> "VectorStore":
-        """Singleton — ek baar banao, baar baar use karo."""
+        """Singleton — create once, reuse every time."""
         if cls._instance is None:
             cls._instance = cls()
         return cls._instance
@@ -70,7 +70,7 @@ class VectorStore:
         embedding: list[float],
         metadata: dict,
     ) -> None:
-        """Ek CV-JD pattern store karo future retrieval ke liye."""
+        """Store a CV-JD pattern for future retrieval."""
         self._cv_patterns.add(
             ids=[doc_id],
             documents=[text],
@@ -85,7 +85,7 @@ class VectorStore:
         n_results: int = 3,
         where: Optional[dict] = None,
     ) -> dict:
-        """Similar CV patterns search karo embedding se."""
+        """Search for similar CV patterns by embedding."""
         kwargs: dict = {"query_embeddings": [embedding], "n_results": n_results}
         if where:
             kwargs["where"] = where
@@ -102,7 +102,7 @@ class VectorStore:
         embedding: list[float],
         metadata: dict,
     ) -> None:
-        """Ek interview question store karo."""
+        """Store an interview question."""
         self._interview_questions.add(
             ids=[doc_id],
             documents=[question_text],
@@ -117,7 +117,7 @@ class VectorStore:
         n_results: int = 5,
         where: Optional[dict] = None,
     ) -> dict:
-        """Similar interview questions retrieve karo."""
+        """Retrieve similar interview questions."""
         kwargs: dict = {"query_embeddings": [embedding], "n_results": n_results}
         if where:
             kwargs["where"] = where
@@ -128,14 +128,14 @@ class VectorStore:
     # ------------------------------------------------------------------
 
     def get_collection_stats(self) -> dict[str, int]:
-        """Dono collections ka document count wapas lo."""
+        """Return the document count of both collections."""
         return {
             COLLECTION_CV_PATTERNS: self._cv_patterns.count(),
             COLLECTION_INTERVIEW_QUESTIONS: self._interview_questions.count(),
         }
 
     def reset_collection(self, collection_name: str) -> None:
-        """Testing ke liye — ek collection saaf karo."""
+        """For testing — clear a collection."""
         self._client.delete_collection(collection_name)
         if collection_name == COLLECTION_CV_PATTERNS:
             self._cv_patterns = self._client.get_or_create_collection(
@@ -151,5 +151,5 @@ class VectorStore:
 
 
 def get_vector_store() -> VectorStore:
-    """FastAPI dependency injection ke liye shortcut."""
+    """Shortcut for FastAPI dependency injection."""
     return VectorStore.get_instance()

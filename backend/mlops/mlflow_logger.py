@@ -1,6 +1,6 @@
-# Yeh file MLflow ke saath har agent run ka data log karti hai.
-# Har experiment: input size, output score, retry count, latency — sab track hota hai.
-# Local mlruns/ folder mein save hota hai — koi cloud nahi chahiye.
+# Logs every agent run's data with MLflow.
+# Per experiment: input size, output score, retry count, latency — everything is tracked.
+# Saved to the local mlruns/ folder — no cloud needed.
 
 from __future__ import annotations
 
@@ -18,7 +18,7 @@ settings = get_settings()
 
 
 class MLflowLogger:
-    """Wrapper around MLflow — agent runs ke liye clean API."""
+    """Wrapper around MLflow — a clean API for agent runs."""
 
     def __init__(self) -> None:
         mlflow.set_tracking_uri(settings.mlflow_tracking_uri)
@@ -34,7 +34,7 @@ class MLflowLogger:
         run_name: str,
         tags: Optional[dict[str, str]] = None,
     ) -> Generator[Run, None, None]:
-        """Context manager — run start karo, kaam karo, automatically end ho jaaye."""
+        """Context manager — start a run, do the work, end it automatically."""
         _tags = tags or {}
         with mlflow.start_run(run_name=run_name, tags=_tags) as run:
             logger.debug(f"MLflow run started: {run_name} (id={run.info.run_id})")
@@ -51,7 +51,7 @@ class MLflowLogger:
         metrics: dict[str, float],
         tags: Optional[dict[str, str]] = None,
     ) -> str:
-        """Ek agent run ka pura record save karo, run_id wapas lo."""
+        """Save the full record of one agent run and return the run_id."""
         _tags = {
             "agent": agent_name,
             "session_id": session_id,
@@ -65,15 +65,15 @@ class MLflowLogger:
             return run.info.run_id
 
     def log_params(self, params: dict[str, Any]) -> None:
-        """Active run mein params log karo."""
+        """Log params to the active run."""
         mlflow.log_params(self._flatten(params))
 
     def log_metrics(self, metrics: dict[str, float], step: Optional[int] = None) -> None:
-        """Active run mein metrics log karo."""
+        """Log metrics to the active run."""
         mlflow.log_metrics(metrics, step=step)
 
     def log_artifact_text(self, content: str, filename: str) -> None:
-        """String content ko artifact ke roop mein save karo."""
+        """Save string content as an artifact."""
         import tempfile
         import os
 
@@ -87,7 +87,7 @@ class MLflowLogger:
 
     @staticmethod
     def _flatten(d: dict[str, Any], prefix: str = "") -> dict[str, str]:
-        """Nested dict ko flat string keys mein convert karo MLflow ke liye."""
+        """Flatten a nested dict into flat string keys for MLflow."""
         result: dict[str, str] = {}
         for k, v in d.items():
             full_key = f"{prefix}.{k}" if prefix else k
@@ -99,7 +99,7 @@ class MLflowLogger:
 
 
 def timed_block(logger_instance: MLflowLogger, metric_name: str = "duration_seconds"):
-    """Decorator — function ka runtime measure karo aur MLflow mein log karo."""
+    """Decorator — measure a function's runtime and log it to MLflow."""
     def decorator(fn):
         import functools
 

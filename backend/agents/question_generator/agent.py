@@ -1,6 +1,6 @@
-# Yeh Agent 2 hai — CV Analysis ka output lo, personalized interview questions banao.
-# RAG se similar questions retrieve karo context ke liye, phir Groq LLM se generate karo.
-# BaseAgent se inherit — self-healing, MLflow logging, critique injection sab free milta hai.
+# Agent 2 — takes the CV analysis output and generates personalized interview questions.
+# Retrieves similar questions via RAG for context, then generates with the Groq LLM.
+# Inherits from BaseAgent — self-healing, MLflow logging and critique injection come for free.
 
 from __future__ import annotations
 
@@ -166,7 +166,7 @@ class QuestionGeneratorAgent(BaseAgent):
     # ------------------------------------------------------------------
 
     def validate(self, output: dict[str, Any]) -> tuple[bool, Optional[str]]:
-        """Pydantic schema se output validate karo."""
+        """Validate the output against the Pydantic schema."""
         is_valid, error, _ = validate_question_output(output)
         return is_valid, error
 
@@ -203,8 +203,8 @@ class QuestionGeneratorAgent(BaseAgent):
         variables: dict[str, str],
     ) -> list[dict[str, Any]]:
         """
-        Prompt render karo, LLM call karo, JSON array parse karo.
-        List nahi mila toh ValueError — self-healing loop handle karega.
+        Render the prompt, call the LLM, parse the JSON array.
+        Raises ValueError if no list is returned — the self-healing loop handles it.
         """
         messages = prompt_template.format_messages(**variables)
         response = self._llm.invoke(messages)

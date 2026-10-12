@@ -1,6 +1,6 @@
-# Yeh file Whisper model se speech-to-text karta hai — bilkul local, koi API nahi.
-# "base" model best balance hai speed aur accuracy ka — CPU pe bhi chalta hai.
-# Lazy loading hai: pehli call pe model load hota hai, baad mein cache rehta hai.
+# Speech-to-text with the Whisper model — fully local, no API.
+# The "base" model is the best balance of speed and accuracy — runs on CPU too.
+# Lazy loading: the model loads on the first call and stays cached afterwards.
 
 from __future__ import annotations
 
@@ -19,7 +19,7 @@ _model: Optional[whisper.Whisper] = None
 
 
 def _get_model() -> whisper.Whisper:
-    """Lazy load — sirf ek baar download hoga, memory mein rehega."""
+    """Lazy load — downloaded only once, kept in memory."""
     global _model
     if _model is None:
         logger.info("Loading Whisper 'base' model...")
@@ -30,7 +30,7 @@ def _get_model() -> whisper.Whisper:
 
 def transcribe(audio_path: str, language: str = "en") -> str:
     """
-    Audio file ko text mein convert karo using local Whisper model.
+    Convert an audio file to text using the local Whisper model.
 
     Args:
         audio_path: Path to audio file (wav, mp3, flac, etc.)
@@ -57,7 +57,7 @@ def transcribe(audio_path: str, language: str = "en") -> str:
     logger.debug(f"[STT] Transcribing: {path.name} ({path.stat().st_size / 1024:.1f} KB)")
 
     model = _get_model()
-    options: dict = {"fp16": False}  # fp16 CPU pe error deta hai
+    options: dict = {"fp16": False}  # fp16 raises an error on CPU
     if language:
         options["language"] = language
 
@@ -70,8 +70,8 @@ def transcribe(audio_path: str, language: str = "en") -> str:
 
 def transcribe_bytes(audio_bytes: bytes, suffix: str = ".wav", language: str = "en") -> str:
     """
-    In-memory bytes ko transcribe karo — temp file pe save karke Whisper chalao.
-    LiveKit se raw bytes aate hain — yeh function unhe handle karta hai.
+    Transcribe in-memory bytes — save to a temp file and run Whisper on it.
+    Raw bytes arrive from LiveKit — this function handles them.
     """
     import tempfile
 
@@ -90,7 +90,7 @@ def transcribe_bytes(audio_bytes: bytes, suffix: str = ".wav", language: str = "
 
 def is_silent(audio_path: str, silence_threshold_db: float = -40.0) -> bool:
     """
-    Audio file mostly silent hai? LLM evaluation skip karne ke liye use karo.
+    Is the audio file mostly silent? Use this to skip LLM evaluation.
     Simple RMS-based check — no heavy dependencies needed.
     """
     try:

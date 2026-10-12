@@ -1,8 +1,8 @@
 "use client";
 
-// Voice Interview page — LiveKit token milne pe VoiceInterface, warna text simulation mode.
-// startInterview() se livekit_token + livekit_url milte hain.
-// 409 ya no-LiveKit = simulation mode (text-based answers).
+// Voice Interview page — VoiceInterface when a LiveKit token is received, otherwise text simulation mode.
+// startInterview() returns livekit_token + livekit_url.
+// 409 or no LiveKit = simulation mode (text-based answers).
 
 import { useEffect, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
@@ -26,7 +26,7 @@ export default function InterviewPage() {
 
   useEffect(() => {
     if (!sessionId) {
-      setError("session_id missing. Results page se dobara aaiye.");
+      setError("session_id missing. Please go back to the results page.");
       setLoading(false);
       return;
     }
@@ -35,13 +35,13 @@ export default function InterviewPage() {
       try {
         const data = await getResults(sessionId);
         if (!data.questions) {
-          setError("Questions abhi ready nahi. Results page pe wait karo.");
+          setError("Questions are not ready yet. Please wait on the results page.");
           setLoading(false);
           return;
         }
         setResults(data);
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Interview load karne mein error");
+        setError(err instanceof Error ? err.message : "Failed to load the interview");
       } finally {
         setLoading(false);
       }
@@ -66,8 +66,8 @@ export default function InterviewPage() {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
         <Loader2 size={40} className="animate-spin text-indigo-400" />
-        <p className="text-slate-300">Interview setup ho raha hai...</p>
-        <p className="text-slate-500 text-sm">Agent 3 initialize ho raha hai</p>
+        <p className="text-slate-300">Setting up the interview...</p>
+        <p className="text-slate-500 text-sm">Initializing Agent 3</p>
       </div>
     );
   }
@@ -76,7 +76,7 @@ export default function InterviewPage() {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
         <AlertTriangle size={40} className="text-amber-400" />
-        <p className="text-slate-300">Questions load nahi hue</p>
+        <p className="text-slate-300">Questions failed to load</p>
         <button
           className="btn-secondary"
           onClick={() => router.push(`/results?session_id=${sessionId}`)}
@@ -111,7 +111,7 @@ export default function InterviewPage() {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Text-based simulation interview — LiveKit nahi hone pe fallback
+// Text-based simulation interview — fallback when LiveKit is unavailable
 // ─────────────────────────────────────────────────────────────────────────────
 
 function SimulationInterview({
@@ -149,7 +149,7 @@ function SimulationInterview({
         <Award size={48} className="mx-auto text-indigo-400" />
         <h2 className="text-2xl font-bold text-slate-100">Interview Complete!</h2>
         <p className="text-slate-400 text-sm">
-          Sab {allQ.length} sawaalon ke jawab submit ho gaye.
+          All {allQ.length} answers have been submitted.
         </p>
         <a
           href={`/results?session_id=${sessionId}`}
@@ -210,7 +210,7 @@ function SimulationInterview({
           style={{ minHeight: "8rem" }}
           value={answer}
           onChange={(e) => setAnswer(e.target.value)}
-          placeholder="Yahan apna jawab type karo... (Ctrl+Enter se submit)"
+          placeholder="Type your answer here... (Ctrl+Enter to submit)"
           onKeyDown={(e) => {
             if (e.key === "Enter" && e.ctrlKey) handleSubmit();
           }}

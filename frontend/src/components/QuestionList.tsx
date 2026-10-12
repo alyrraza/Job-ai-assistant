@@ -1,7 +1,7 @@
 "use client";
 
-// Interview questions ko category-wise accordion mein dikhata hai.
-// Difficulty badges aur skill tags ke saath — collapsible per category.
+// Shows interview questions in a per-category accordion.
+// With difficulty badges and skill tags — collapsible per category.
 
 import { useState } from "react";
 import { ChevronDown, ChevronRight, Brain, Users, Target } from "lucide-react";
@@ -122,7 +122,7 @@ function QuestionCard({ question, index }: { question: QuestionItem; index: numb
             className="text-slate-500 hover:text-slate-400 text-xs transition-colors"
             onClick={() => setShowFollowUp(!showFollowUp)}
           >
-            {showFollowUp ? "▲ Follow-up chhupao" : "▼ Follow-up dekho"}
+            {showFollowUp ? "▲ Hide follow-up" : "▼ Show follow-up"}
           </button>
           {showFollowUp && (
             <p className="text-slate-400 text-xs mt-1.5 italic border-l-2 border-slate-600 pl-3">

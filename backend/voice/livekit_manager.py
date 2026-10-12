@@ -1,6 +1,6 @@
-# Yeh file LiveKit WebRTC room manage karti hai — real-time voice ka backbone.
-# Agent question audio publish karta hai, user ka answer audio receive karta hai.
-# JWT token generation, room create/connect, aur audio track publish/subscribe sab yahan hai.
+# Manages the LiveKit WebRTC room — the backbone of real-time voice.
+# The agent publishes question audio and receives the user's answer audio.
+# JWT token generation, room create/connect and audio track publish/subscribe all live here.
 
 from __future__ import annotations
 
@@ -42,12 +42,12 @@ def generate_room_token(
     ttl_seconds: int = 3600,
 ) -> str:
     """
-    LiveKit JWT token banao — room join karne ke liye.
-    LIVEKIT_API_KEY aur LIVEKIT_API_SECRET .env se aate hain.
+    Create a LiveKit JWT token — for joining a room.
+    LIVEKIT_API_KEY and LIVEKIT_API_SECRET come from .env.
     """
     if not settings.livekit_api_key or not settings.livekit_api_secret:
         raise RuntimeError(
-            "LIVEKIT_API_KEY aur LIVEKIT_API_SECRET .env mein set karo"
+            "LIVEKIT_API_KEY and LIVEKIT_API_SECRET must be set in .env"
         )
 
     from livekit.api import AccessToken, VideoGrants  # type: ignore[import]
@@ -71,7 +71,7 @@ def generate_room_token(
 
 class LiveKitManager:
     """
-    LiveKit room ke saath interact karne ka main interface.
+    Main interface for interacting with a LiveKit room.
 
     Usage:
         manager = LiveKitManager(session_id)
@@ -98,8 +98,8 @@ class LiveKitManager:
 
     def publish_audio(self, file_path: str) -> None:
         """
-        WAV file ko LiveKit room mein broadcast karo.
-        Frontend participants yeh audio sunenge.
+        Broadcast a WAV file into the LiveKit room.
+        Frontend participants will hear this audio.
         """
         if not self._configured:
             logger.debug(f"[LiveKit] Fallback publish: {Path(file_path).name}")
@@ -109,8 +109,8 @@ class LiveKitManager:
 
     def receive_audio(self, timeout_sec: int = 60) -> str:
         """
-        LiveKit room se incoming audio record karo aur WAV file path return karo.
-        Timeout ke baad jo bhi mila woh return kar do.
+        Record incoming audio from the LiveKit room and return the WAV file path.
+        After the timeout, return whatever was received.
         """
         if not self._configured:
             logger.debug("[LiveKit] Fallback receive — returning silence WAV")
@@ -120,7 +120,7 @@ class LiveKitManager:
 
     def create_frontend_token(self) -> str:
         """
-        Frontend ke liye participant token banao — browser WebRTC connection ke liye.
+        Create a participant token for the frontend — for the browser WebRTC connection.
         """
         if not self._configured:
             return "no-livekit-configured"
@@ -135,7 +135,7 @@ class LiveKitManager:
     # ------------------------------------------------------------------
 
     async def _async_publish_audio(self, file_path: str) -> None:
-        """WAV frames ko LiveKit audio source mein push karo."""
+        """Push WAV frames into the LiveKit audio source."""
         from livekit import rtc  # type: ignore[import]
 
         token = generate_room_token(
@@ -171,7 +171,7 @@ class LiveKitManager:
 
     async def _async_receive_audio(self, timeout_sec: int) -> str:
         """
-        LiveKit room mein join karo, incoming audio record karo, WAV file save karo.
+        Join the LiveKit room, record incoming audio, save a WAV file.
         """
         from livekit import rtc  # type: ignore[import]
 
@@ -229,7 +229,7 @@ class LiveKitManager:
 
     @staticmethod
     def _write_silence_wav(duration_sec: float = 1.0) -> str:
-        """Testing ke liye silence WAV banao — real audio nahi hai."""
+        """For testing — create a silent WAV; this is not real audio."""
         out = str(_RECORDED_DIR / f"silence_{uuid.uuid4().hex[:6]}.wav")
         n_samples = int(_STT_SAMPLE_RATE * duration_sec)
         pcm = struct.pack(f"{n_samples}h", *([0] * n_samples))
@@ -246,7 +246,7 @@ def _wav_to_pcm_chunks(
     target_rate: int,
     chunk_size: int,
 ) -> list[bytes]:
-    """WAV file padho, resampling karo agar zaroorat ho, chunks mein kato."""
+    """Read the WAV file, resample if needed, split into chunks."""
     with wave.open(wav_path, "rb") as wf:
         src_rate = wf.getframerate()
         raw_pcm = wf.readframes(wf.getnframes())
@@ -270,7 +270,7 @@ def _pcm_chunks_to_wav(
     sample_rate: int,
     n_channels: int,
 ) -> None:
-    """PCM bytes list ko WAV file mein save karo."""
+    """Save a list of PCM bytes to a WAV file."""
     all_pcm = b"".join(chunks)
     with wave.open(out_path, "wb") as wf:
         wf.setnchannels(n_channels)

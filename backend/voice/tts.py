@@ -1,6 +1,6 @@
-# pyttsx3 Windows built-in SAPI5 TTS use karta hai — koi model download nahi chahiye.
-# speak() call karo, WAV file path milega. TTSEngine singleton lazy init hai.
-# Coqui se replace kiya — same interface rakhi taake voice_interview/agent.py break na ho.
+# pyttsx3 uses the built-in Windows SAPI5 TTS — no model download needed.
+# Call speak() to get a WAV file path. TTSEngine is a lazily initialized singleton.
+# Replaced Coqui — kept the same interface so voice_interview/agent.py does not break.
 
 from __future__ import annotations
 
@@ -17,12 +17,12 @@ _DEFAULT_RATE = 150
 
 
 class TTSEngine:
-    """Singleton pyttsx3 engine — Windows SAPI5 ke through local TTS."""
+    """Singleton pyttsx3 engine — local TTS through Windows SAPI5."""
 
     _instance: Optional["TTSEngine"] = None
 
     def __new__(cls) -> "TTSEngine":
-        """Singleton: sirf ek engine instance poori application mein."""
+        """Singleton: only one engine instance in the whole application."""
         if cls._instance is None:
             obj = super().__new__(cls)
             obj._ready = False
@@ -30,7 +30,7 @@ class TTSEngine:
         return cls._instance
 
     def _ensure_init(self) -> None:
-        """Lazy init — pehli speak() call pe engine boot hota hai."""
+        """Lazy init — the engine boots on the first speak() call."""
         if self._ready:
             return
         import pyttsx3  # type: ignore[import]
@@ -43,10 +43,10 @@ class TTSEngine:
 
     def speak(self, text: str, output_path: Optional[str] = None) -> str:
         """
-        Text ko WAV file mein save karo aur path return karo.
+        Save the text to a WAV file and return the path.
 
         Args:
-            text: Synthesise karna wala text. Max 500 chars for best quality.
+            text: Text to synthesise. Max 500 chars for best quality.
             output_path: Save path. None = auto UUID filename in data/audio/tts/.
 
         Returns:
@@ -89,7 +89,7 @@ class TTSEngine:
 
     def get_available_voices(self) -> list[dict]:
         """
-        System pe install TTS voices ka list return karo.
+        Return the list of TTS voices installed on the system.
 
         Returns:
             List of dicts, each with keys: 'id', 'name', 'languages'.
@@ -103,7 +103,7 @@ class TTSEngine:
 
     def set_rate(self, rate: int = _DEFAULT_RATE) -> None:
         """
-        Speech rate set karo.
+        Set the speech rate.
 
         Args:
             rate: Words per minute. Default 150. Typical range 80–300.
@@ -114,7 +114,7 @@ class TTSEngine:
 
     def set_voice(self, voice_id: str) -> None:
         """
-        Specific SAPI5 voice set karo (get_available_voices() se id milta hai).
+        Set a specific SAPI5 voice (the id comes from get_available_voices()).
 
         Args:
             voice_id: SAPI5 voice identifier string.
@@ -131,7 +131,7 @@ class TTSEngine:
 def speak(
     text: str,
     output_path: Optional[str] = None,
-    model_name: str = "",  # ignored — pyttsx3 mein model selection nahi hoti
+    model_name: str = "",  # ignored — pyttsx3 has no model selection
 ) -> str:
     """
     Text-to-speech: text → WAV file. Module-level convenience wrapper.
@@ -149,22 +149,22 @@ def speak(
 
 def speak_question_intro(question_text: str, question_number: int, total: int) -> str:
     """
-    Interview question ko polite intro ke saath bolao.
+    Speak an interview question with a polite intro.
     E.g. "Question 2 of 9. Tell me about a time when you..."
     """
     return speak(f"Question {question_number} of {total}. {question_text}")
 
 
 def speak_follow_up(follow_up_text: str) -> str:
-    """Follow-up question ke liye short lead-in ke saath bolao."""
+    """Speak a follow-up question with a short lead-in."""
     return speak(f"Follow-up question: {follow_up_text}")
 
 
 def get_available_voices() -> list[dict]:
-    """Module-level wrapper — system TTS voices list return karo."""
+    """Module-level wrapper — return the list of system TTS voices."""
     return TTSEngine().get_available_voices()
 
 
 def set_rate(rate: int = _DEFAULT_RATE) -> None:
-    """Module-level wrapper — engine speech rate set karo."""
+    """Module-level wrapper — set the engine speech rate."""
     TTSEngine().set_rate(rate)

@@ -1,6 +1,6 @@
-# Yeh SABSE IMPORTANT file hai — sab agents isko inherit karte hain.
-# Self-healing loop yahan implement hua hai: Execute → Validate → PASS/FAIL → Retry → Escalate.
-# Har child agent sirf execute() aur validate() override kare — baaki sab free milta hai.
+# The most important file — every agent inherits from this.
+# The self-healing loop lives here: Execute → Validate → PASS/FAIL → Retry → Escalate.
+# Child agents only override execute() and validate() — everything else comes for free.
 
 from __future__ import annotations
 
@@ -29,7 +29,7 @@ class AgentState(str, Enum):
 
 @dataclass
 class AgentResult:
-    """Har agent run ka structured output."""
+    """Structured output of a single agent run."""
 
     success: bool
     data: dict[str, Any]
@@ -62,7 +62,7 @@ class AgentResult:
 
 class BaseAgent(ABC):
     """
-    Abstract base — har agent yahan se inherit kare.
+    Abstract base — every agent inherits from this.
 
     Self-healing flow:
         run() → _execute_with_healing() → execute() → validate()
@@ -87,8 +87,8 @@ class BaseAgent(ABC):
 
     def run(self, input_data: dict[str, Any]) -> AgentResult:
         """
-        Supervisor yahan call karta hai.
-        Self-healing loop automatically handle hoti hai.
+        Called by the supervisor.
+        The self-healing loop is handled automatically.
         """
         self._attempt = 0
         self._state = AgentState.RUNNING
@@ -176,7 +176,7 @@ class BaseAgent(ABC):
     @abstractmethod
     def validate(self, output: dict[str, Any]) -> tuple[bool, Optional[str]]:
         """
-        Output check karo.
+        Check the output.
         Returns (True, None) on success, (False, "reason") on failure.
         """
 
@@ -191,7 +191,7 @@ class BaseAgent(ABC):
         error: Optional[str],
     ) -> str:
         """
-        Failure ka reason analyze karo aur corrective hint banao.
+        Analyze the reason for the failure and produce a corrective hint.
         Override this in child agents for LLM-powered critique.
         """
         return (
@@ -206,7 +206,7 @@ class BaseAgent(ABC):
 
     def escalate(self, input_data: dict[str, Any], last_result: Optional[AgentResult]) -> None:
         """
-        Max retries ke baad supervisor ko notify karo.
+        Notify the supervisor after max retries are exhausted.
         Override to POST to /escalate endpoint.
         """
         logger.critical(
@@ -220,7 +220,7 @@ class BaseAgent(ABC):
     def _inject_critique(
         self, input_data: dict[str, Any], failed_result: AgentResult
     ) -> dict[str, Any]:
-        """Critique generate karo aur next attempt ke liye input mein daal do."""
+        """Generate a critique and add it to the input for the next attempt."""
         critique = self.self_critique(
             input_data,
             failed_result.data,
@@ -264,7 +264,7 @@ class BaseAgent(ABC):
         )
 
     def _log_to_mlflow(self, input_data: dict[str, Any], result: AgentResult) -> None:
-        """Result MLflow mein silently log karo — failure hone pe ignore karo."""
+        """Log the result to MLflow silently — ignore any logging failure."""
         try:
             run_id = mlflow_logger.log_agent_run(
                 agent_name=self.name,

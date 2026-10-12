@@ -1,6 +1,6 @@
-# Yeh file Loguru configure karti hai puri application ke liye.
-# print() ki jagah logger.info/debug/error use karo — structured logs milte hain.
-# Har agent aur module yahan se logger import kare.
+# Configures Loguru for the whole application.
+# Use logger.info/debug/error instead of print() — gives structured logs.
+# Every agent and module should import the logger from here.
 
 from __future__ import annotations
 
@@ -14,10 +14,10 @@ _LOG_DIR.mkdir(parents=True, exist_ok=True)
 
 
 def setup_logger(level: str = "DEBUG") -> None:
-    """Loguru ko configure karo — console + rotating file dono."""
+    """Configure Loguru — console + rotating file."""
     logger.remove()
 
-    # Console — color ke saath
+    # Console — with color
     logger.add(
         sys.stderr,
         level=level,
@@ -32,7 +32,7 @@ def setup_logger(level: str = "DEBUG") -> None:
         diagnose=True,
     )
 
-    # File — 10 MB rotate, 7 din raho
+    # File — rotate at 10 MB, keep for 7 days
     logger.add(
         _LOG_DIR / "app_{time:YYYY-MM-DD}.log",
         level="INFO",
@@ -44,7 +44,7 @@ def setup_logger(level: str = "DEBUG") -> None:
     )
 
 
-# Module import hote hi setup ho jaaye
+# Set up as soon as the module is imported
 setup_logger()
 
 __all__ = ["logger"]

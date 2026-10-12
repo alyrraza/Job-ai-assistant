@@ -1,7 +1,7 @@
 "use client";
 
-// Pipeline progress tracker — 4 steps dikhata hai: Upload → Analysis → Questions → Interview.
-// Current state se active step highlight hoti hai — animated indicator.
+// Pipeline progress tracker — shows 4 steps: Upload → Analysis → Questions → Interview.
+// The active step is highlighted from the current state — animated indicator.
 
 import { Check, Loader2 } from "lucide-react";
 
@@ -104,7 +104,7 @@ export default function ProgressTracker({ state }: ProgressTrackerProps) {
       <div className="mt-2 text-center">
         <span className="text-slate-500 text-xs font-mono">state: {state}</span>
         {state === "failed" && (
-          <span className="ml-2 text-red-400 text-xs">Pipeline fail ho gaya</span>
+          <span className="ml-2 text-red-400 text-xs">Pipeline failed</span>
         )}
       </div>
     </div>

@@ -1,6 +1,6 @@
-# Yeh Agent 3 hai — real-time voice interview conduct karta hai.
-# Question bolta hai (TTS) → user ka jawab sunta hai (STT) → LLM se evaluate karta hai.
-# BaseAgent se inherit — self-healing, MLflow logging, retry sab automatic.
+# Agent 3 — conducts the real-time voice interview.
+# Speaks the question (TTS) → listens to the user's answer (STT) → evaluates it with the LLM.
+# Inherits from BaseAgent — self-healing, MLflow logging and retry are automatic.
 
 from __future__ import annotations
 
@@ -188,7 +188,7 @@ class VoiceInterviewAgent(BaseAgent):
     # ------------------------------------------------------------------
 
     def validate(self, output: dict[str, Any]) -> tuple[bool, Optional[str]]:
-        """SessionReport schema se output validate karo."""
+        """Validate the output against the SessionReport schema."""
         is_valid, error, _ = validate_session_report(output)
         return is_valid, error
 
@@ -217,7 +217,7 @@ class VoiceInterviewAgent(BaseAgent):
     # ------------------------------------------------------------------
 
     def _init_voice_modules(self) -> None:
-        """TTS, STT, LiveKit lazy init karo — ek baar, baar baar nahi."""
+        """Lazily initialize TTS, STT and LiveKit — once, not on every call."""
         if self._tts is None:
             from backend.voice.tts import speak, speak_question_intro, speak_follow_up
             self._tts = speak
@@ -234,15 +234,15 @@ class VoiceInterviewAgent(BaseAgent):
             self._livekit = LiveKitManager(session_id=self.session_id)
 
     def _speak_question(self, question_text: str, number: int, total: int) -> str:
-        """Question TTS audio banao aur path return karo."""
+        """Generate the question TTS audio and return its path."""
         return self._tts_intro(question_text, number, total)
 
     def _speak_follow_up(self, follow_up_text: str) -> str:
-        """Follow-up question TTS audio banao."""
+        """Generate the follow-up question TTS audio."""
         return self._tts_follow(follow_up_text)
 
     def _transcribe_answer(self, audio_path: str) -> str:
-        """Audio file ko text mein convert karo. Silent hai toh empty string."""
+        """Convert an audio file to text. Returns an empty string if it is silent."""
         if self._stt_silent(audio_path):
             logger.debug(f"[{self.name}] Silent audio detected — returning empty answer")
             return ""
@@ -262,7 +262,7 @@ class VoiceInterviewAgent(BaseAgent):
         critique: Optional[str] = None,
     ) -> dict[str, Any]:
         """
-        Ek question-answer pair evaluate karo.
+        Evaluate a single question-answer pair.
         Empty answer → immediate 0 without LLM call.
         """
         if not answer_text.strip():
@@ -304,8 +304,8 @@ class VoiceInterviewAgent(BaseAgent):
         self, evaluations: list[dict[str, Any]]
     ) -> dict[str, Any]:
         """
-        Poore session ka summary feedback banao.
-        Empty session → safe defaults return karo.
+        Generate summary feedback for the whole session.
+        Empty session → return safe defaults.
         """
         if not evaluations:
             return {
@@ -350,8 +350,8 @@ class VoiceInterviewAgent(BaseAgent):
         variables: dict[str, str],
     ) -> dict[str, Any]:
         """
-        Prompt render karo, LLM call karo, JSON parse karo.
-        JSON parse fail ho → ValueError raise → self-healing loop handle karega.
+        Render the prompt, call the LLM, parse the JSON.
+        If JSON parsing fails → raise ValueError → the self-healing loop handles it.
         """
         messages = prompt_template.format_messages(**variables)
         response = llm.invoke(messages)

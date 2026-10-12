@@ -1,6 +1,6 @@
-# Yeh CV Analyzer agent hai — pehla aur sabse important agent.
-# CV text aur JD text lo, Groq LLM se teen step mein process karo, validated JSON wapas do.
-# BaseAgent se inherit kiya — self-healing, MLflow logging sab automatic milta hai.
+# CV Analyzer agent — the first and most important agent in the pipeline.
+# Takes CV text and JD text, processes them in three steps with the Groq LLM, returns validated JSON.
+# Inherits from BaseAgent — self-healing and MLflow logging come for free.
 
 from __future__ import annotations
 
@@ -91,7 +91,7 @@ class CVAnalyzerAgent(BaseAgent):
     # ------------------------------------------------------------------
 
     def validate(self, output: dict[str, Any]) -> tuple[bool, Optional[str]]:
-        """Pydantic schema se output validate karo."""
+        """Validate the output against the Pydantic schema."""
         # Strip internal keys before schema validation
         public_output = {k: v for k, v in output.items() if not k.startswith("_")}
         is_valid, error, _ = validate_cv_analysis(public_output)
@@ -107,7 +107,7 @@ class CVAnalyzerAgent(BaseAgent):
         failed_output: dict[str, Any],
         error: Optional[str],
     ) -> str:
-        """Groq se critiquer prompt chalaao — next attempt ke liye hint banao."""
+        """Run the critic prompt through Groq to produce a hint for the next attempt."""
         present_keys = list(failed_output.keys())
         critique_prompt = (
             f"The CV analysis JSON output was invalid.\n"
@@ -127,8 +127,8 @@ class CVAnalyzerAgent(BaseAgent):
 
     def _call_llm_json(self, prompt_template, variables: dict[str, str]) -> dict[str, Any]:
         """
-        Prompt render karo, LLM call karo, JSON parse karo.
-        JSON parse fail ho toh ValueError raise karo — self-healing loop catch karega.
+        Render the prompt, call the LLM, parse the JSON.
+        Raises ValueError if JSON parsing fails — the self-healing loop catches it.
         """
         messages = prompt_template.format_messages(**variables)
         response = self._llm.invoke(messages)

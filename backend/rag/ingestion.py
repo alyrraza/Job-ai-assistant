@@ -1,6 +1,6 @@
-# Yeh file documents ko vector store mein ingest karti hai.
-# PDF aur plain text dono support hain — LlamaIndex document loader use kiya.
-# Embedding generate karo aur ChromaDB mein store karo — retriever baad mein use karega.
+# Ingests documents into the vector store.
+# Supports both PDF and plain text — uses the LlamaIndex document loader.
+# Generates embeddings and stores them in ChromaDB — the retriever uses them later.
 
 from __future__ import annotations
 
@@ -16,13 +16,13 @@ from sentence_transformers import SentenceTransformer
 from backend.rag.vector_store import VectorStore, COLLECTION_CV_PATTERNS, get_vector_store
 from backend.utils.logger import logger
 
-# Local embedding model — Groq sirf LLM ke liye, embeddings local hain
+# Local embedding model — Groq is only for the LLM, embeddings are local
 _EMBED_MODEL_NAME = "all-MiniLM-L6-v2"
 _embed_model: SentenceTransformer | None = None
 
 
 def _get_embed_model() -> SentenceTransformer:
-    """Lazy load karo — pehli baar hi download hoga."""
+    """Lazy load — downloaded only the first time."""
     global _embed_model
     if _embed_model is None:
         logger.info(f"Loading embedding model: {_EMBED_MODEL_NAME}")
@@ -32,14 +32,14 @@ def _get_embed_model() -> SentenceTransformer:
 
 
 def embed_text(text: str) -> list[float]:
-    """Text ko embedding vector mein convert karo."""
+    """Convert text into an embedding vector."""
     model = _get_embed_model()
     embedding = model.encode(text, normalize_embeddings=True)
     return embedding.tolist()
 
 
 def _stable_doc_id(text: str, prefix: str = "") -> str:
-    """Same text ka same ID banao — duplicate inserts se bacho."""
+    """Produce the same ID for the same text — avoids duplicate inserts."""
     hash_val = hashlib.md5(text.encode()).hexdigest()[:12]
     return f"{prefix}_{hash_val}" if prefix else hash_val
 
@@ -50,7 +50,7 @@ def _stable_doc_id(text: str, prefix: str = "") -> str:
 
 def ingest_pdf(file_path: Union[str, Path], metadata: dict | None = None) -> int:
     """
-    PDF file lo, chunk karo, embed karo, ChromaDB mein store karo.
+    Take a PDF file, chunk it, embed it, store it in ChromaDB.
 
     Returns:
         Number of chunks ingested.
@@ -76,7 +76,7 @@ def ingest_text(
     metadata: dict | None = None,
 ) -> int:
     """
-    Raw text string lo, chunk karo, embed karo, ChromaDB mein store karo.
+    Take a raw text string, chunk it, embed it, store it in ChromaDB.
 
     Returns:
         Number of chunks ingested.
@@ -95,7 +95,7 @@ def ingest_text(
 
 def _ingest_documents(documents: list[Document], base_metadata: dict) -> int:
     """
-    LlamaIndex documents lo → chunk karo → embed karo → ChromaDB mein add karo.
+    Take LlamaIndex documents → chunk → embed → add to ChromaDB.
     """
     splitter = SentenceSplitter(chunk_size=512, chunk_overlap=64)
     nodes = splitter.get_nodes_from_documents(documents)
@@ -146,8 +146,8 @@ def ingest_cv_jd_match(
     session_id: str,
 ) -> int:
     """
-    Successful CV-JD match ko vector store mein save karo.
-    Future retrieval mein similar CVs ke liye example ban jaayega.
+    Save a successful CV-JD match to the vector store.
+    It will serve as an example for similar CVs in future retrievals.
     """
     combined = f"CV:\n{cv_text[:1500]}\n\nJD:\n{jd_text[:1500]}"
     metadata = {

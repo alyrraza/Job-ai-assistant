@@ -1,6 +1,6 @@
-# Yeh file Question Generator agent ke teen prompt templates define karti hai.
-# Behavioral, Technical, aur Role-Specific — har category ke liye alag prompt hai.
-# Difficulty calibration bhi yahan hoti hai: gaps → hard, strengths → medium.
+# Defines the three prompt templates used by the Question Generator agent.
+# Behavioral, Technical and Role-Specific — one prompt per category.
+# Difficulty calibration also happens here: gaps → hard, strengths → medium.
 
 from __future__ import annotations
 
@@ -11,7 +11,7 @@ from langchain_core.prompts import (
 )
 
 # ---------------------------------------------------------------------------
-# Shared difficulty calibration instruction — teeno prompts mein inject hoti hai
+# Shared difficulty calibration instruction — injected into all three prompts
 # ---------------------------------------------------------------------------
 
 _DIFFICULTY_RULE = """Difficulty assignment rules (strictly follow):
@@ -123,19 +123,19 @@ ROLE_SPECIFIC_PROMPT = ChatPromptTemplate.from_messages([
 # ---------------------------------------------------------------------------
 
 def build_critique_section(critique: str | None) -> str:
-    """Self-healing loop ka critique next attempt mein inject karo."""
+    """Inject the self-healing loop critique into the next attempt."""
     if not critique:
         return ""
     return f"\nPREVIOUS ATTEMPT FAILED — fix these issues:\n{critique}\n"
 
 
 def build_rag_context(chunks_text: str) -> str:
-    """RAG se mile examples ko prompt mein inject karo."""
+    """Inject the examples retrieved via RAG into the prompt."""
     if not chunks_text.strip():
         return ""
     return f"\nSimilar interview question examples for reference:\n{chunks_text}\n"
 
 
 def format_list(items: list[str]) -> str:
-    """List ko comma-separated string mein convert karo."""
+    """Convert a list into a comma-separated string."""
     return ", ".join(items) if items else "none specified"

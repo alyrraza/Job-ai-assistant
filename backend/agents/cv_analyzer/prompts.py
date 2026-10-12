@@ -1,6 +1,6 @@
-# Yeh file CV Analyzer agent ke teeno LLM prompts define karti hai.
-# CV parse karo, JD parse karo, phir dono compare karo — teen alag prompts hain.
-# Prompts ko yahan centralize kiya taake agent.py clean rahe aur prompts easily tune ho sakein.
+# Defines the three LLM prompts used by the CV Analyzer agent.
+# Parse the CV, parse the JD, then compare the two — three separate prompts.
+# Centralized here to keep agent.py clean and make the prompts easy to tune.
 
 from __future__ import annotations
 
@@ -113,7 +113,7 @@ COMPARISON_PROMPT = ChatPromptTemplate.from_messages([
 
 
 def build_critique_section(critique: str | None) -> str:
-    """Previous attempt ka critique inject karo agar available ho."""
+    """Inject the critique from the previous attempt, if available."""
     if not critique:
         return ""
     return f"\nPREVIOUS ATTEMPT FAILED — please fix these issues:\n{critique}\n"

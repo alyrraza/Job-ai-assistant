@@ -1,8 +1,8 @@
 "use client";
 
 // Results page — CV analysis score, strengths/gaps, generated questions dikhao.
-// WebSocket se live pipeline progress milti hai — polling fallback bhi hai.
-// "Start Interview" button se voice interview /interview page pe jaata hai.
+// Live pipeline progress arrives over WebSocket — there is a polling fallback too.
+// The "Start Interview" button takes the user to the /interview page.
 
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -49,14 +49,14 @@ export default function ResultsPage() {
       }
       setPipelineState(data.state);
     } catch (err) {
-      setErrorMsg(err instanceof Error ? err.message : "Results load karne mein error");
+      setErrorMsg(err instanceof Error ? err.message : "Failed to load results");
       setLoadState("error");
     }
   }, [sessionId]);
 
   useEffect(() => {
     if (!sessionId) {
-      setErrorMsg("session_id URL mein nahi mila. Upload page se dobara try karo.");
+      setErrorMsg("session_id not found in the URL. Please try again from the upload page.");
       setLoadState("error");
       return;
     }
@@ -134,7 +134,7 @@ export default function ResultsPage() {
         <XCircle size={40} className="text-red-400" />
         <p className="text-slate-300">Pipeline failed: {errorMsg}</p>
         <button className="btn-secondary flex items-center gap-2" onClick={fetchResults}>
-          <RefreshCw size={16} /> Retry karo
+          <RefreshCw size={16} /> Retry
         </button>
       </div>
     );
@@ -150,7 +150,7 @@ export default function ResultsPage() {
         <div className="card flex items-center gap-4 py-10 justify-center">
           <Loader2 size={28} className="animate-spin text-indigo-400" />
           <div>
-            <p className="text-slate-200 font-medium">AI analyze kar raha hai...</p>
+            <p className="text-slate-200 font-medium">The AI is analyzing...</p>
             <p className="text-slate-500 text-sm">CV parse → JD parse → comparison → questions generate</p>
           </div>
         </div>
@@ -222,7 +222,7 @@ export default function ResultsPage() {
                   </span>
                 ))}
                 {results.analysis.gaps.length === 0 && (
-                  <span className="text-slate-500 text-sm">Koi major gap nahi! 🎉</span>
+                  <span className="text-slate-500 text-sm">No major gaps! 🎉</span>
                 )}
               </div>
               {results.analysis.top_missing_skill && (
@@ -265,8 +265,8 @@ export default function ResultsPage() {
             Questions Ready — Interview Shuru Karo!
           </h3>
           <p className="text-slate-400 text-sm mb-6 max-w-md mx-auto">
-            AI tumse in questions pe real-time voice interview lega.
-            Mic ready raho — interview {results.questions.total_count} questions ka hoga.
+            The AI will run a real-time voice interview with you on these questions.
+            Keep your mic ready — the interview will have {results.questions.total_count} questions.
           </p>
           <button
             className="btn-primary flex items-center gap-2 mx-auto text-base px-8"
@@ -288,8 +288,8 @@ export default function ResultsPage() {
         <div className="card flex items-center gap-4">
           <Loader2 size={24} className="animate-spin text-indigo-400 shrink-0" />
           <div>
-            <p className="text-slate-200 font-medium">Questions generate ho rahe hain...</p>
-            <p className="text-slate-500 text-sm">Gaps aur strengths ke basis pe personalized questions ban rahe hain</p>
+            <p className="text-slate-200 font-medium">Generating questions...</p>
+            <p className="text-slate-500 text-sm">Personalized questions are being built from your gaps and strengths</p>
           </div>
         </div>
       )}

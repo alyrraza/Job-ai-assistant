@@ -1,6 +1,6 @@
-# Yeh file dynamic routing logic implement karti hai — supervisor ka "brain".
-# Current pipeline state dekh ke decide karta hai konsa agent next chalega.
-# Agent classes yahan import hoti hain — mcp_server.py mein nahi — circular import se bacho.
+# Implements the dynamic routing logic — the supervisor's "brain".
+# Looks at the current pipeline state and decides which agent runs next.
+# Agent classes are imported here, not in mcp_server.py — to avoid circular imports.
 
 from __future__ import annotations
 
@@ -50,12 +50,12 @@ _AUTO_ADVANCE_STATES: set[PipelineState] = {PipelineState.AGENT1_DONE}
 
 
 def get_next_agent_name(state: PipelineState) -> Optional[str]:
-    """Current state ke baad konsa agent chalega — None matlab koi nahi."""
+    """Which agent runs after the current state — None means none."""
     return _STATE_TO_AGENT.get(state)
 
 
 def get_running_state(agent_name: str) -> Optional[PipelineState]:
-    """Agent name se uska running state do."""
+    """Return the running state for an agent name."""
     mapping = {
         "cv_analyzer": PipelineState.AGENT1_RUNNING,
         "question_generator": PipelineState.AGENT2_RUNNING,
@@ -65,28 +65,28 @@ def get_running_state(agent_name: str) -> Optional[PipelineState]:
 
 
 def should_auto_advance(state: PipelineState) -> bool:
-    """Is state ke baad automatically next agent chalao?"""
+    """Should the next agent run automatically after this state?"""
     return state in _AUTO_ADVANCE_STATES
 
 
 def transition_on_success(state: PipelineState) -> PipelineState:
-    """Success ke baad next state kya hoga."""
+    """What the next state will be after success."""
     return _SUCCESS_TRANSITIONS.get(state, PipelineState.FAILED)
 
 
 def transition_on_failure(state: PipelineState) -> PipelineState:
-    """Any running state fail hone pe FAILED state."""
+    """FAILED state when any running state fails."""
     return PipelineState.FAILED
 
 
 # ---------------------------------------------------------------------------
-# Agent factory — session_id se correct agent instantiate karo
+# Agent factory — instantiate the correct agent from the session_id
 # ---------------------------------------------------------------------------
 
 def build_agent(agent_name: str, session_id: str) -> Any:
     """
-    Agent name se agent instance banao.
-    Voice interview agent Phase 4 mein add hoga.
+    Create an agent instance from the agent name.
+    The voice interview agent will be added in Phase 4.
     """
     if agent_name == "cv_analyzer":
         return CVAnalyzerAgent(session_id=session_id)
@@ -110,8 +110,8 @@ def run_agent(
     input_data: dict[str, Any],
 ) -> AgentResult:
     """
-    Agent ko synchronously chalao aur AgentResult wapas do.
-    Background task mein call hota hai — blocking OK hai.
+    Run the agent synchronously and return an AgentResult.
+    Called from a background task — blocking is OK.
     """
     logger.info(f"[Router] Running agent={agent_name} | session={session_id}")
     agent = build_agent(agent_name, session_id)
@@ -129,8 +129,8 @@ def run_agent(
 
 def detect_parallel_ready(state: PipelineState) -> list[str]:
     """
-    Is state mein parallel chalane layak agents kaunse hain?
-    Currently none — future mein sub-tasks parallel ho sakti hain.
+    Which agents can run in parallel in this state?
+    Currently none — sub-tasks may run in parallel in the future.
     """
     _parallel_map: dict[PipelineState, list[str]] = {
         # Example: PipelineState.AGENT1_DONE: ["question_generator", "rag_indexer"]

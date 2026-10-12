@@ -1,6 +1,6 @@
-# Yeh file CV Analyzer agent ke output ka Pydantic schema define karti hai.
-# LLM jo JSON return kare usse is schema se validate karo — agar field missing ho toh reject karo.
-# validate() function agent.py mein directly call hota hai — type safety guarantee hai.
+# Defines the Pydantic schema for the CV Analyzer agent's output.
+# Validates the JSON returned by the LLM against this schema — rejects it if a field is missing.
+# validate() is called directly from agent.py — guarantees type safety.
 
 from __future__ import annotations
 
@@ -10,7 +10,7 @@ from pydantic import BaseModel, Field, field_validator
 
 
 class CVAnalysisOutput(BaseModel):
-    """CV Analyzer agent ka validated output schema."""
+    """Validated output schema of the CV Analyzer agent."""
 
     match_score: int = Field(..., ge=0, le=100, description="CV-JD match percentage 0-100")
     strengths: list[str] = Field(..., min_length=1, description="Skills candidate clearly has")
@@ -25,7 +25,7 @@ class CVAnalysisOutput(BaseModel):
     @field_validator("strengths", "gaps", "required_skills", "candidate_skills", mode="before")
     @classmethod
     def _coerce_list(cls, v: Any) -> list[str]:
-        """String ya None aaye toh list mein wrap karo."""
+        """Wrap a string or None in a list."""
         if v is None:
             return []
         if isinstance(v, str):
@@ -42,7 +42,7 @@ class CVAnalysisOutput(BaseModel):
     @field_validator("match_score", mode="before")
     @classmethod
     def _coerce_score(cls, v: Any) -> int:
-        """Float ya string score aaye toh int banao."""
+        """Convert a float or string score to int."""
         try:
             score = int(float(str(v)))
             return max(0, min(100, score))
@@ -52,7 +52,7 @@ class CVAnalysisOutput(BaseModel):
 
 def validate_cv_analysis(raw: dict[str, Any]) -> tuple[bool, Optional[str], Optional[CVAnalysisOutput]]:
     """
-    Raw LLM dict ko validate karo.
+    Validate the raw LLM dict.
 
     Returns:
         (True, None, CVAnalysisOutput) on success

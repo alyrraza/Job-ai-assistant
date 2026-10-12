@@ -1,6 +1,6 @@
-# Yeh file SQLite ke saare database models define karti hai.
-# SQLAlchemy ORM use hua hai — har table ek class hai.
-# Interview sessions, agent runs, aur results yahan store hote hain.
+# Defines all SQLite database models.
+# Uses the SQLAlchemy ORM — each table is a class.
+# Interview sessions, agent runs and results are stored here.
 
 from __future__ import annotations
 
@@ -56,7 +56,7 @@ class Base(DeclarativeBase):
 # --- Models ---
 
 class InterviewSession(Base):
-    """Ek complete interview session — CV upload se final report tak."""
+    """A complete interview session — from CV upload to the final report."""
 
     __tablename__ = "interview_sessions"
 
@@ -79,7 +79,7 @@ class InterviewSession(Base):
 
 
 class AgentRun(Base):
-    """Har agent execution ka record — retry history ke saath."""
+    """Record of each agent execution — with retry history."""
 
     __tablename__ = "agent_runs"
 
@@ -103,7 +103,7 @@ class AgentRun(Base):
 
 
 class InterviewAnswer(Base):
-    """Voice interview mein har sawal ka jawab aur score."""
+    """Answer and score for each question in the voice interview."""
 
     __tablename__ = "interview_answers"
 
@@ -126,7 +126,7 @@ class InterviewAnswer(Base):
 # --- DB setup helpers ---
 
 def get_engine():
-    """SQLAlchemy engine banao settings se."""
+    """Create the SQLAlchemy engine from settings."""
     return create_engine(
         settings.database_url,
         connect_args={"check_same_thread": False},
@@ -135,12 +135,12 @@ def get_engine():
 
 
 def get_session_factory():
-    """Session factory — FastAPI dependency injection ke liye."""
+    """Session factory — for FastAPI dependency injection."""
     engine = get_engine()
     return sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 
 def init_db() -> None:
-    """Pehli baar run karo — saari tables ban jaayengi."""
+    """Run on first start — creates all tables."""
     engine = get_engine()
     Base.metadata.create_all(bind=engine)

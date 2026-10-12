@@ -1,7 +1,7 @@
 "use client";
 
-// CV + JD upload page — user yahan se pipeline shuru karta hai.
-// Submit ke baad session_id milta hai aur /results page pe redirect hota hai.
+// CV + JD upload page — the user starts the pipeline from here.
+// After submitting, a session_id is returned and the user is redirected to /results.
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -47,11 +47,11 @@ export default function UploadPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!cvText.trim() || !jdText.trim()) {
-      setError("CV aur JD dono fields fill karo.");
+      setError("Please fill in both the CV and JD fields.");
       return;
     }
     if (cvText.trim().length < 50) {
-      setError("CV text bahut chhota hai — minimum 50 characters.");
+      setError("The CV text is too short — minimum 50 characters.");
       return;
     }
 
@@ -62,7 +62,7 @@ export default function UploadPage() {
       const sessionId = await analyzeCV(cvText.trim(), jdText.trim());
       router.push(`/results?session_id=${sessionId}`);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Analysis start karne mein error aya.");
+      setError(err instanceof Error ? err.message : "Failed to start the analysis.");
       setLoading(false);
     }
   };
@@ -86,15 +86,15 @@ export default function UploadPage() {
           <span className="text-indigo-400">Mock Interview Practice Karo</span>
         </h1>
         <p className="text-slate-400 text-lg max-w-xl mx-auto">
-          CV + Job Description paste karo. AI score karega, gaps batayega,
-          aur personalized voice interview lega.
+          Paste your CV + Job Description. The AI will score the match, list your gaps,
+          and run a personalized voice interview.
         </p>
       </div>
 
       {/* How it works */}
       <div className="grid grid-cols-3 gap-4 mb-10">
         {[
-          { step: "01", title: "Upload CV + JD", desc: "Text paste karo" },
+          { step: "01", title: "Upload CV + JD", desc: "Paste the text" },
           { step: "02", title: "AI Analysis", desc: "Score + gaps + questions" },
           { step: "03", title: "Voice Interview", desc: "Real mock interview" },
         ].map((item) => (
@@ -117,7 +117,7 @@ export default function UploadPage() {
               </div>
               <div>
                 <div className="font-semibold text-slate-100 text-sm">Your CV / Resume</div>
-                <div className="text-slate-500 text-xs">Plain text mein paste karo</div>
+                <div className="text-slate-500 text-xs">Paste as plain text</div>
               </div>
             </div>
             <textarea
@@ -144,7 +144,7 @@ export default function UploadPage() {
               </div>
               <div>
                 <div className="font-semibold text-slate-100 text-sm">Job Description</div>
-                <div className="text-slate-500 text-xs">JD ka text yahan paste karo</div>
+                <div className="text-slate-500 text-xs">Paste the JD text here</div>
               </div>
             </div>
             <textarea

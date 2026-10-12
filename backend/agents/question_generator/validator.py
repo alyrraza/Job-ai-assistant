@@ -1,6 +1,6 @@
-# Yeh file Question Generator agent ke output ka Pydantic schema define karti hai.
-# QuestionItem har sawal ko validate karta hai — text, difficulty, category sab check hote hain.
-# total_count aur difficulty_distribution auto-compute hote hain — LLM pe bharosa nahi karte.
+# Defines the Pydantic schema for the Question Generator agent's output.
+# QuestionItem validates each question — text, difficulty and category are all checked.
+# total_count and difficulty_distribution are computed automatically — we do not trust the LLM to count.
 
 from __future__ import annotations
 
@@ -17,7 +17,7 @@ class DifficultyLevel(str, Enum):
 
 
 class QuestionItem(BaseModel):
-    """Ek single interview question — validated aur categorized."""
+    """A single interview question — validated and categorized."""
 
     text: str = Field(..., min_length=10, description="Interview question text")
     difficulty: DifficultyLevel = Field(..., description="easy / medium / hard")
@@ -35,7 +35,7 @@ class QuestionItem(BaseModel):
     @field_validator("difficulty", mode="before")
     @classmethod
     def _normalise_difficulty(cls, v: Any) -> str:
-        """Case-insensitive aur whitespace-tolerant."""
+        """Case-insensitive and whitespace-tolerant."""
         return str(v).strip().lower() if v else "medium"
 
     @field_validator("category", mode="before")
@@ -50,7 +50,7 @@ class QuestionItem(BaseModel):
 
 
 class QuestionGeneratorOutput(BaseModel):
-    """Question Generator agent ka pura validated output."""
+    """Fully validated output of the Question Generator agent."""
 
     behavioral: list[QuestionItem] = Field(
         ..., min_length=3, description="Behavioral questions — min 3"
@@ -68,7 +68,7 @@ class QuestionGeneratorOutput(BaseModel):
     @field_validator("behavioral", "technical", "role_specific", mode="before")
     @classmethod
     def _coerce_question_list(cls, v: Any) -> list:
-        """None ya non-list aaye toh empty list do — Pydantic will fail min_length check."""
+        """If None or a non-list arrives, return an empty list — Pydantic will fail the min_length check."""
         if v is None:
             return []
         if isinstance(v, list):
@@ -77,7 +77,7 @@ class QuestionGeneratorOutput(BaseModel):
 
     @model_validator(mode="after")
     def _compute_derived_fields(self) -> "QuestionGeneratorOutput":
-        """total_count aur difficulty_distribution LLM pe chhod ke khud compute karo."""
+        """Compute total_count and difficulty_distribution ourselves instead of trusting the LLM."""
         all_q = self.behavioral + self.technical + self.role_specific
         self.total_count = len(all_q)
         dist: dict[str, int] = {"easy": 0, "medium": 0, "hard": 0}
@@ -95,7 +95,7 @@ def _attach_category(
     raw_list: list[dict[str, Any]],
     category: str,
 ) -> list[dict[str, Any]]:
-    """LLM returned list mein category field inject karo."""
+    """Inject the category field into the list returned by the LLM."""
     out = []
     for item in raw_list:
         if isinstance(item, dict):
@@ -107,7 +107,7 @@ def validate_question_output(
     raw: dict[str, Any],
 ) -> tuple[bool, Optional[str], Optional[QuestionGeneratorOutput]]:
     """
-    Raw dict ko validate karo.
+    Validate the raw dict.
 
     Returns:
         (True, None, QuestionGeneratorOutput)  — on success

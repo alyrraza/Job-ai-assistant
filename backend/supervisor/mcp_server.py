@@ -1,6 +1,6 @@
-# Yeh Supervisor MCP Server hai — poori pipeline ka orchestrator.
-# State machine yahan manage hoti hai: IDLE → Agent1 → Agent2 → AGENT3_READY.
-# POST /dispatch se pipeline shuru hoti hai, /status se progress check karte hain.
+# Supervisor MCP Server — the orchestrator of the whole pipeline.
+# The state machine is managed here: IDLE → Agent1 → Agent2 → AGENT3_READY.
+# The pipeline starts with POST /dispatch, progress is checked with /status.
 
 from __future__ import annotations
 
@@ -24,11 +24,11 @@ from backend.supervisor.router import (
 from backend.utils.logger import logger
 
 # ---------------------------------------------------------------------------
-# In-memory session store — production mein Redis ya DB se replace karo
+# In-memory session store — replace with Redis or a DB in production
 # ---------------------------------------------------------------------------
 
 class _PipelineSession:
-    """Ek session ki complete state — thread-safe access ke liye lock attach hai."""
+    """Complete state of one session — a lock is attached for thread-safe access."""
 
     def __init__(self, session_id: str, input_data: dict[str, Any]) -> None:
         self.session_id = session_id
@@ -78,13 +78,13 @@ _sessions_lock = asyncio.Lock()
 # ---------------------------------------------------------------------------
 
 class DispatchRequest(BaseModel):
-    """POST /dispatch — pipeline shuru karo ya specific agent chalao."""
+    """POST /dispatch — start the pipeline or run a specific agent."""
     session_id: str = Field(..., min_length=1)
     cv_text: str = Field(..., min_length=10)
     jd_text: str = Field(..., min_length=10)
     force_agent: Optional[str] = Field(
         None,
-        description="Specific agent name force karo — normally auto-routed"
+        description="Force a specific agent — normally auto-routed"
     )
 
 
@@ -96,7 +96,7 @@ class DispatchResponse(BaseModel):
 
 
 class ReportRequest(BaseModel):
-    """POST /report — agent apna result wapas bhejta hai."""
+    """POST /report — the agent sends back its result."""
     session_id: str
     agent_name: str
     success: bool
@@ -126,7 +126,7 @@ class StatusResponse(BaseModel):
 
 
 class EscalateRequest(BaseModel):
-    """POST /escalate — agent max retries hit, supervisor ko batao."""
+    """POST /escalate — an agent hit max retries, tell the supervisor."""
     session_id: str
     agent_name: str
     error_message: str
@@ -170,8 +170,8 @@ def _get_session(session_id: str) -> _PipelineSession:
 
 async def _run_pipeline_step(session_id: str, agent_name: str) -> None:
     """
-    Background mein agent chalao, result /report pe POST karo.
-    Thread-blocking run_agent ko asyncio.to_thread mein wrap kiya hai.
+    Run the agent in the background and POST the result to /report.
+    The thread-blocking run_agent is wrapped in asyncio.to_thread.
     """
     session = _sessions.get(session_id)
     if not session:
@@ -233,7 +233,7 @@ async def _run_pipeline_step(session_id: str, agent_name: str) -> None:
 
 
 def _store_agent_result(session: _PipelineSession, agent_name: str, data: dict) -> None:
-    """Agent result ko correct slot mein store karo."""
+    """Store the agent result in the correct slot."""
     if agent_name == "cv_analyzer":
         session.agent1_result = data
     elif agent_name == "question_generator":
@@ -249,8 +249,8 @@ def _store_agent_result(session: _PipelineSession, agent_name: str, data: dict) 
 @mcp_app.post("/dispatch", response_model=DispatchResponse)
 async def dispatch(request: DispatchRequest, background_tasks: BackgroundTasks) -> DispatchResponse:
     """
-    Pipeline shuru karo ya existing session resume karo.
-    New session banao → state IDLE → Agent 1 background mein chalao.
+    Start the pipeline or resume an existing session.
+    Create a new session → state IDLE → run Agent 1 in the background.
     """
     async with _sessions_lock:
         session = _sessions.get(request.session_id)
@@ -287,8 +287,8 @@ async def dispatch(request: DispatchRequest, background_tasks: BackgroundTasks) 
 @mcp_app.post("/report", response_model=ReportResponse)
 async def report(request: ReportRequest) -> ReportResponse:
     """
-    Agent apna result yahan bhejta hai.
-    State machine advance hoti hai aur next action decide hota hai.
+    The agent sends its result here.
+    The state machine advances and the next action is decided.
     """
     session = _get_session(request.session_id)
 
@@ -331,7 +331,7 @@ async def report(request: ReportRequest) -> ReportResponse:
 
 @mcp_app.get("/status", response_model=StatusResponse)
 async def get_status(session_id: str) -> StatusResponse:
-    """Current pipeline state do — frontend polling ke liye."""
+    """Return the current pipeline state — for frontend polling."""
     session = _get_session(session_id)
     return StatusResponse(
         session_id=session_id,
@@ -362,8 +362,8 @@ async def get_full_status(session_id: str) -> dict[str, Any]:
 @mcp_app.post("/escalate", response_model=EscalateResponse)
 async def escalate(request: EscalateRequest) -> EscalateResponse:
     """
-    Agent max retries ke baad yahan notify karta hai.
-    Supervisor pipeline ko FAILED state mein le jaata hai.
+    Called here after an agent hits max retries.
+    The supervisor moves the pipeline to the FAILED state.
     """
     session = _get_session(request.session_id)
 
@@ -397,7 +397,7 @@ async def escalate(request: EscalateRequest) -> EscalateResponse:
 
 @mcp_app.delete("/session/{session_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_session(session_id: str) -> None:
-    """Session cleanup — testing ke liye ya explicit reset."""
+    """Session cleanup — for testing or an explicit reset."""
     async with _sessions_lock:
         if session_id not in _sessions:
             raise HTTPException(status_code=404, detail="Session not found")

@@ -1,7 +1,7 @@
 "use client";
 
-// Circular progress card — match score 0-100 dikhata hai.
-// Green >70, yellow 40-70, red <40. SVG stroke-dashoffset animation hai.
+// Circular progress card — shows the 0-100 match score.
+// Green >70, yellow 40-70, red <40. SVG stroke-dashoffset animation.
 
 interface ScoreCardProps {
   score: number;

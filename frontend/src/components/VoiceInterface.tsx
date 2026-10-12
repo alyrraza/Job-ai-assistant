@@ -1,8 +1,8 @@
 "use client";
 
-// Voice Interview UI — LiveKit room se connect hota hai.
-// RoomAudioRenderer TTS audio play karta hai, mic toggle user ka audio publish karta hai.
-// Backend TTS publish karta hai → frontend sunata hai → user bolta hai → backend receive karta hai.
+// Voice Interview UI — connects to the LiveKit room.
+// RoomAudioRenderer plays the TTS audio, the mic toggle publishes the user's audio.
+// Backend publishes TTS → frontend plays it → user speaks → backend receives it.
 
 import { useEffect, useState, useRef } from "react";
 import { Mic, MicOff, Loader2, CheckCircle2, XCircle, Award, ArrowRight } from "lucide-react";
@@ -192,7 +192,7 @@ function InterviewRoom({
               ? "bg-red-900/60 border-red-400 animate-pulse hover:bg-red-800/60"
               : "bg-indigo-900/60 border-indigo-500 hover:bg-indigo-800/60"
           }`}
-          title={micEnabled ? "Mic band karo" : "Mic shuru karo — jawab do"}
+          title={micEnabled ? "Turn mic off" : "Turn mic on — give your answer"}
         >
           {micEnabled ? (
             <Mic size={32} className="text-red-400" />
@@ -204,8 +204,8 @@ function InterviewRoom({
         <div className="text-center">
           <p className="text-slate-300 text-sm font-medium">
             {micEnabled
-              ? "Recording... — jawab dene ke baad mic band karo"
-              : "Mic dabao aur apna jawab bolo"}
+              ? "Recording... — turn the mic off after answering"
+              : "Press the mic and speak your answer"}
           </p>
           <p className="text-slate-600 text-xs mt-1 font-mono">
             LiveKit connected • {roomName}
@@ -215,7 +215,7 @@ function InterviewRoom({
         {wsState === "agent3_running" && (
           <div className="flex items-center gap-2 text-emerald-400 text-xs">
             <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-            AI sun raha hai
+            The AI is listening
           </div>
         )}
       </div>
@@ -315,7 +315,7 @@ function FinalReport({
               ))}
             </ul>
           ) : (
-            <p className="text-slate-500 text-sm">Koi strong area identified nahi hua</p>
+            <p className="text-slate-500 text-sm">No strong areas identified</p>
           )}
         </div>
 
@@ -332,7 +332,7 @@ function FinalReport({
               ))}
             </ul>
           ) : (
-            <p className="text-slate-500 text-sm">Koi major weak area nahi!</p>
+            <p className="text-slate-500 text-sm">No major weak areas!</p>
           )}
         </div>
       </div>

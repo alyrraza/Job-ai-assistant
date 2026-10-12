@@ -1,6 +1,6 @@
-# Yeh file .env se saari settings load karti hai.
-# Agar koi key missing ho toh startup pe hi error aata hai — runtime pe nahi.
-# Har jagah se settings yahan se import karo, hardcode bilkul mat karo.
+# Loads all settings from .env.
+# If a key is missing, the error appears at startup — not at runtime.
+# Import settings from here everywhere, never hardcode them.
 
 from __future__ import annotations
 
@@ -13,13 +13,13 @@ from dotenv import load_dotenv
 from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings
 
-# Repo root se .env load karo
+# Load .env from the repo root
 _ROOT = Path(__file__).resolve().parents[2]
 load_dotenv(_ROOT / ".env")
 
 
 class Settings(BaseSettings):
-    """Central config — saari .env values yahan milti hain."""
+    """Central config — all .env values are available here."""
 
     # --- Groq LLM ---
     groq_api_key: str = Field(..., validation_alias="GROQ_API_KEY")
@@ -62,9 +62,9 @@ class Settings(BaseSettings):
     @field_validator("groq_api_key")
     @classmethod
     def _groq_key_not_empty(cls, v: str) -> str:
-        """Blank key se bilkul kaam nahi chalega."""
+        """A blank key will not work at all."""
         if not v or v.strip() == "":
-            raise ValueError("GROQ_API_KEY .env mein set karo — blank nahi chalega")
+            raise ValueError("GROQ_API_KEY must be set in .env — blank is not allowed")
         return v.strip()
 
     model_config = {"env_file": str(_ROOT / ".env"), "extra": "ignore"}
@@ -72,5 +72,5 @@ class Settings(BaseSettings):
 
 @lru_cache(maxsize=1)
 def get_settings() -> Settings:
-    """Singleton — ek baar load, baar baar reuse."""
+    """Singleton — load once, reuse every time."""
     return Settings()

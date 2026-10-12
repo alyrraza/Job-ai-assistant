@@ -1,6 +1,6 @@
-# Yeh file Voice Interview agent ke teen prompt templates define karti hai.
-# Answer evaluate karo (0-10 score), improvement feedback do, follow-up question banao.
-# Har prompt sirf ek cheez karta hai — single responsibility, easy to tune.
+# Defines the three prompt templates used by the Voice Interview agent.
+# Evaluate the answer (0-10 score), give improvement feedback, generate a follow-up question.
+# Each prompt does exactly one thing — single responsibility, easy to tune.
 
 from __future__ import annotations
 
@@ -120,14 +120,14 @@ FOLLOW_UP_PROMPT = ChatPromptTemplate.from_messages([
 # ---------------------------------------------------------------------------
 
 def build_critique_section(critique: str | None) -> str:
-    """Self-healing critique inject karo agar previous attempt fail hua ho."""
+    """Inject the self-healing critique if the previous attempt failed."""
     if not critique:
         return ""
     return f"\nPREVIOUS ATTEMPT FAILED — fix these issues:\n{critique}\n"
 
 
 def build_qa_summary(evaluations: list[dict]) -> str:
-    """Session ke saare Q&A ko LLM-readable format mein format karo."""
+    """Format all Q&A of the session into an LLM-readable format."""
     lines = []
     for i, ev in enumerate(evaluations, 1):
         lines.append(
@@ -141,7 +141,7 @@ def build_qa_summary(evaluations: list[dict]) -> str:
 
 
 def build_score_breakdown(evaluations: list[dict]) -> str:
-    """Score distribution string banao — e.g. 'Q1:7 Q2:4 Q3:9'."""
+    """Build the score distribution string — e.g. 'Q1:7 Q2:4 Q3:9'."""
     return " | ".join(
         f"Q{i + 1}:{ev.get('score', 0)}" for i, ev in enumerate(evaluations)
     )
